@@ -1,0 +1,35 @@
+.global-popup {
+  position: fixed;
+  bottom: 15px;
+  right: 10px;
+  z-index: 9999;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease;
+}
+
+.global-popup.success {
+  background-color: #2ecc71;
+}
+
+.global-popup.error {
+  background-color: #e74c3c;
+}
+
+.global-popup.info {
+  background-color: #3498db;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}

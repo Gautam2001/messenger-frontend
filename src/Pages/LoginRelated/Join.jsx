@@ -1,0 +1,75 @@
+import React, { useState, useRef } from "react";
+import "./join.css";
+import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
+import { useApiClients } from "../../Api/useApiClients";
+
+const Join = () => {
+  const { showPopup } = usePopup();
+  const { messengerApi } = useApiClients();
+  const [username, setUsername] = useState("");
+  const [status, setStatus] = useState("");
+  const inputRef = useRef(null);
+
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    if (!username) return;
+
+    setStatus("loading");
+
+    try {
+      const res = await messengerApi.post("/messenger/join", { username });
+      const data = res.data;
+
+      if (data.status === "0") {
+        showPopup(data.message || "Joined successfully!", "success");
+      } else {
+        showPopup(data.message || "Something went wrong.", "error");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error. Please try again later.";
+      showPopup(message, "error");
+    } finally {
+      setStatus("");
+    }
+  };
+
+  return (
+    <div className="join-page">
+      <div className="join-card">
+        <div className="join-header">
+          <span className="join-emoji">💬</span>
+          <h1>Join Messengers</h1>
+          <p>Connect. Chat. Share moments instantly.</p>
+        </div>
+
+        <form onSubmit={handleJoin} className="join-form">
+          <input
+            className="input-field"
+            ref={inputRef}
+            type="email"
+            placeholder="Enter your email address"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? "Joining..." : "Join Now"}
+          </button>
+        </form>
+
+        <div className="join-footer">
+          <p>
+            Already a member? <a href="/login">Log in here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Join;

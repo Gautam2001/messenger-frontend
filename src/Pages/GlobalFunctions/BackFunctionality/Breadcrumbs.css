@@ -1,0 +1,18 @@
+.breadcrumb {
+  font-size: 14px;
+  padding: 10px 0;
+}
+
+.breadcrumb span {
+  cursor: pointer;
+  color: #3498db;
+}
+
+.breadcrumb-current {
+  font-weight: bold;
+  color: #555;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
