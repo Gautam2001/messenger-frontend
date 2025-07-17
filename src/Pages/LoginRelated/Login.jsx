@@ -1,10 +1,102 @@
-import React from "react";
+import React, { useState } from "react";
+import "./Login.css";
+import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
+import { useApiClients } from "../../Api/useApiClients";
 
 const Login = () => {
+  const { showPopup } = usePopup();
+  const { loginApi, messengerApi } = useApiClients();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!username || !password) return;
+
+    setStatus("loading");
+
+    console.log(username, password);
+
+    try {
+      const res = await messengerApi.post("/messenger/exists", {
+        username,
+      });
+      const data = res.data;
+
+      if (data.status === "0") {
+        //continue to login
+        const loginRes = await loginApi.post("/auth/login", {
+          username,
+          password,
+        });
+        const loginData = loginRes.data;
+        if (loginData.status === "0") {
+          showPopup(loginData.message || "Login successful!", "success");
+          sessionStorage.setItem(
+            "LoginData",
+            JSON.stringify(loginData, null, 2)
+          );
+          console.log("LoginData : " + JSON.stringify(loginData, null, 2));
+          //show dashboard
+        } else {
+          showPopup(loginData.message || "Something went wrong.", "error"); //proceed  for signup
+        }
+      } else {
+        //user does not exists in messenger table
+        showPopup(data.message || "Something went wrong.", "error"); //proceed for join
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error. Please try again later.";
+      showPopup(message, "error");
+    } finally {
+      setStatus("");
+    }
+  };
+
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <h1>Login</h1>
+    <div className="fcc-page">
+      <div className="login-card">
+        <div className="login-header">
+          <span className="login-emoji">💬</span>
+          <h1>Messengers Login</h1>
+          <p>Connect. Chat. Share moments instantly.</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="form-group">
+            <label className="input-label">Email</label>
+            <input
+              className="input-field"
+              type="email"
+              placeholder="Enter your email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="input-label">Password</label>
+            <input
+              className="input-field"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? "Logging In..." : "Login"}
+          </button>
+        </form>
       </div>
     </div>
   );

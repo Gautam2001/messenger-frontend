@@ -16,12 +16,8 @@ export const createAxiosInstance = (baseURL) => {
 
       const allowedUrls = [
         "/messenger/join",
-        "/member/signup",
-        "/member/login",
-        "/member/sendOtp",
-        "/member/validateOtp",
-        "/member/forgotPassword",
-        "/member/contactUs",
+        "/messenger/exists",
+        "/auth/login",
       ];
 
       if (!allowedUrls.some((url) => config.url.includes(url)) && !token) {

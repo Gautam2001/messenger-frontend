@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import "./join.css";
+import React, { useState } from "react";
+import "./Join.css";
 import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../Api/useApiClients";
 
@@ -8,7 +8,6 @@ const Join = () => {
   const { messengerApi } = useApiClients();
   const [username, setUsername] = useState("");
   const [status, setStatus] = useState("");
-  const inputRef = useRef(null);
 
   const handleJoin = async (e) => {
     e.preventDefault();
@@ -21,7 +20,12 @@ const Join = () => {
       const data = res.data;
 
       if (data.status === "0") {
-        showPopup(data.message || "Joined successfully!", "success");
+        showPopup(data.message || "Joined successfully!", "success"); //proceed for login
+      } else if (data.status === "1") {
+        showPopup(
+          data.message || "User does not exist, please Signup!",
+          "error"
+        ); //proceed for signup
       } else {
         showPopup(data.message || "Something went wrong.", "error");
       }
@@ -35,7 +39,7 @@ const Join = () => {
   };
 
   return (
-    <div className="join-page">
+    <div className="fcc-page">
       <div className="join-card">
         <div className="join-header">
           <span className="join-emoji">💬</span>
@@ -44,15 +48,17 @@ const Join = () => {
         </div>
 
         <form onSubmit={handleJoin} className="join-form">
-          <input
-            className="input-field"
-            ref={inputRef}
-            type="email"
-            placeholder="Enter your email address"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <div className="form-group">
+            <label className="input-label">Email</label>
+            <input
+              className="input-field"
+              type="email"
+              placeholder="Enter your email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
           <button
             className="primary-button"
             type="submit"
