@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
+import { LuMessagesSquare } from "react-icons/lu";
 import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../Api/useApiClients";
 
@@ -59,8 +60,8 @@ const Login = () => {
     <div className="fcc-page">
       <div className="login-card">
         <div className="login-header">
-          <span className="login-emoji">💬</span>
-          <h1>Messengers Login</h1>
+          <LuMessagesSquare size={60} cursor={"pointer"} />
+          <h1>Join Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
         </div>
 

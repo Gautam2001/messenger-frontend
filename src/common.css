@@ -12,6 +12,14 @@ html {
   align-items: center;
 }
 
+.logo {
+  margin-bottom: 1.5rem;
+}
+
+.logo:hover {
+  color: #000;
+}
+
 /* flex center center page */
 .fcc-page {
   display: flex;

@@ -5,15 +5,23 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   max-width: 400px;
   width: 90%;
-  text-align: center;
+  /* text-align: center; */
   transition: all 0.3s ease-in-out;
 }
 
-.login-header .login-emoji {
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-header {
   font-size: 3.5rem;
 }
 
 .login-header h1 {
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: #333;
 }

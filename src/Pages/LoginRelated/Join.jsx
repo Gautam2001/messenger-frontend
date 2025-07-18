@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Join.css";
+import { LuMessagesSquare } from "react-icons/lu";
 import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../Api/useApiClients";
 
@@ -42,7 +43,7 @@ const Join = () => {
     <div className="fcc-page">
       <div className="join-card">
         <div className="join-header">
-          <span className="join-emoji">💬</span>
+          <LuMessagesSquare size={60} cursor={"pointer"} />
           <h1>Join Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
         </div>

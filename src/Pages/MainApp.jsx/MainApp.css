@@ -1,0 +1,65 @@
+.main-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sidebar {
+  width: 65px;
+  background-color: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border-right: 1px solid #e0e0e0;
+  padding: 1rem 0;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
+}
+
+.contact-list {
+  width: 30%;
+  background-color: var(--panel-bg);
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.chat-window {
+  flex: 1;
+  background-color: var(--chat-bg);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+:root {
+  --bg-color: #f6f8fa;
+  --text-color: #2f2f2f;
+  --sidebar-bg: #ffffff;
+  --panel-bg: #f0f2f5;
+  --chat-bg: #ffffff;
+}
+
+/* Scrollbar styling (modern look) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
