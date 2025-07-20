@@ -110,6 +110,16 @@
   text-overflow: ellipsis;
 }
 
+.status-icon {
+  margin-right: 6px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.status-icon.seen {
+  color: #007bff;
+}
+
 .no-contacts {
   color: #888;
   text-align: center;

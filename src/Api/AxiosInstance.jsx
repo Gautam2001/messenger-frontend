@@ -12,7 +12,7 @@ export const createAxiosInstance = (baseURL) => {
       const loginData = JSON.parse(
         sessionStorage.getItem("LoginData") ?? "null"
       );
-      const token = loginData?.token;
+      const token = loginData?.accessToken;
 
       const allowedUrls = [
         "/messenger/join",
@@ -24,7 +24,7 @@ export const createAxiosInstance = (baseURL) => {
         window.location.href = "/login";
       }
 
-      if (token) {
+      if (token && !allowedUrls.some((url) => config.url.includes(url))) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
 
