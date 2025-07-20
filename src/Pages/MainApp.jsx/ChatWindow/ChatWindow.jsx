@@ -105,6 +105,16 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
 
   const formatTime = (dateStr) => format(new Date(dateStr), "hh:mm a");
 
+  const textareaRef = useRef(null);
+
+  const handleInput = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }
+  };
+
   return (
     <div className="chat-window">
       {/* Header */}
@@ -169,11 +179,14 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
         <button className="chat-icon-button">
           <FaSmile />
         </button>
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           placeholder="Type your message..."
-          className="chat-input"
+          className="chat-textarea"
+          rows={1}
+          onInput={handleInput}
         />
+
         <button className="chat-icon-button">
           <FaPaperclip />
         </button>

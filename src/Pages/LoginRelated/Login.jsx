@@ -3,10 +3,10 @@ import "./Login.css";
 import { LuMessagesSquare } from "react-icons/lu";
 import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../Api/useApiClients";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { showPopup } = usePopup();
   const { loginApi, messengerApi } = useApiClients();
   const [username, setUsername] = useState("");
@@ -31,7 +31,11 @@ const Login = () => {
           username,
           password,
         });
-        const loginData = loginRes.data;
+        const loginData = {
+          ...res.data,
+          ...loginRes.data,
+        };
+
         if (loginData.status === "0") {
           showPopup(loginData.message || "Login successful!", "success");
           sessionStorage.setItem(
@@ -40,7 +44,7 @@ const Login = () => {
           );
           console.log("LoginData : " + sessionStorage.getItem("LoginData"));
           //show dashboard
-          navigate("/chats");
+          window.location.href = "/chats";
         } else {
           showPopup(loginData.message || "Something went wrong.", "error"); //proceed  for signup
         }
