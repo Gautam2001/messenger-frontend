@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./ChatWindow.css";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
+import { useWebSocket } from "../../GlobalFunctions/GlobalWebsocket/WebSocketContext";
 import { useApiClients } from "../../../Api/useApiClients";
 import { FaSmile, FaPaperclip, FaPaperPlane } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
@@ -11,90 +12,153 @@ import isYesterday from "date-fns/isYesterday";
 const ChatWindow = ({ contact, setSelectedContact }) => {
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
+  const { addMessageListener } = useWebSocket();
 
-  const [cursorId, setCursorId] = useState(0);
   const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
   const [myUsername, setMyUsername] = useState("");
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cursorId, setCursorId] = useState(0);
+  const [seenIds, setSeenIds] = useState(new Set());
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const chatHistoryRef = useRef(null);
+  const chatRef = useRef(null);
+  const textareaRef = useRef(null);
+  const seenIdsRef = useRef(seenIds);
+
+  useEffect(() => {
+    seenIdsRef.current = seenIds;
+  }, [seenIds]);
 
   useEffect(() => {
     const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
-    setMyUsername(loginData?.username || "");
+    if (loginData?.username) setMyUsername(loginData.username);
   }, []);
 
   useEffect(() => {
-    if (contact?.contactUsername && myUsername) {
-      setMessages([]);
-      setCursorId(0);
-      getChatHistory(0);
-    }
-  }, [contact, myUsername]);
+    if (!myUsername || !contact?.contactUsername) return;
+    resetChat();
+  }, [myUsername, contact]);
 
-  const getChatHistory = async (cursorIdParam) => {
-    console.log("chat history called:::");
+  useEffect(() => {
+    const el = chatRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      if (el.scrollTop === 0 && !loadingMore && cursorId !== -1) {
+        loadMessages(cursorId);
+      }
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [cursorId, loadingMore]);
 
+  useEffect(() => {
+    if (!myUsername) return;
+
+    const listener = (msg) => {
+      const isSelfChat =
+        msg.sender === myUsername && msg.receiver === myUsername;
+
+      const isInCurrentChat =
+        (msg.sender === contact.contactUsername &&
+          msg.receiver === myUsername) ||
+        (msg.sender === myUsername &&
+          msg.receiver === contact.contactUsername) ||
+        isSelfChat;
+
+      if (isInCurrentChat && !seenIdsRef.current.has(msg.messageId)) {
+        setSeenIds((prev) => new Set(prev).add(msg.messageId));
+        setMessages((prev) => {
+          const alreadyExists = prev.find((m) => m.messageId === msg.messageId);
+          if (alreadyExists) return prev;
+          return [...prev, msg];
+        });
+        scrollToBottom();
+      }
+    };
+
+    const unsubscribe = addMessageListener(listener);
+    return unsubscribe;
+  }, [myUsername, contact]);
+
+  const resetChat = async () => {
+    setMessages([]);
+    setCursorId(0);
+    setSeenIds(new Set());
+    await loadMessages(0);
+  };
+
+  const loadMessages = async (cursor) => {
     try {
-      const el = chatHistoryRef.current;
-      const oldScrollHeight = el?.scrollHeight || 0;
+      const el = chatRef.current;
+      const prevScrollHeight = el?.scrollHeight || 0;
 
+      setLoadingMore(true);
       const res = await messengerApi.post("/messenger/chat-history", {
         username: myUsername,
         contactUsername: contact.contactUsername,
-        ...(cursorIdParam !== 0 && { cursorId: cursorIdParam }),
+        ...(cursor !== 0 && { cursorId: cursor }),
       });
 
-      const data = res.data;
-      if (data.status === "0") {
-        setMessages((prev) => [...data.chatHistory, ...prev]);
-        setCursorId(data.nextCursorId); // use -1 when no more messages
+      if (res.data.status === "0") {
+        const newMsgs = res.data.chatHistory;
+        setMessages((prev) => [...newMsgs, ...prev]);
+        setSeenIds(
+          (prev) => new Set([...prev, ...newMsgs.map((m) => m.messageId)])
+        );
+        setCursorId(res.data.nextCursorId);
 
         setTimeout(() => {
           if (el) {
-            if (cursorIdParam === 0) {
-              el.scrollTop = el.scrollHeight; // Scroll to bottom initially
-            } else {
-              const newScrollHeight = el.scrollHeight;
-              el.scrollTop = newScrollHeight - oldScrollHeight; // Preserve scroll
-            }
+            if (cursor === 0) el.scrollTop = el.scrollHeight;
+            else el.scrollTop = el.scrollHeight - prevScrollHeight;
           }
-        }, 10);
+        }, 20);
       } else {
-        showPopup(data.message || "Something went wrong.", "error");
+        showPopup(res.data.message || "Failed to load chat history", "error");
       }
-    } catch (err) {
-      const message =
-        err.response?.data?.message || "Network error. Please try again later.";
-      showPopup(message, "error");
+    } catch {
+      showPopup("Network error while loading chat history", "error");
+    } finally {
+      setLoadingMore(false);
     }
   };
 
-  // Throttle scroll handler to avoid frequent triggering
-  useEffect(() => {
-    const el = chatHistoryRef.current;
-    if (!el) return;
+  const handleSend = async () => {
+    const content = newMessage.trim();
+    if (!content) return;
 
-    let throttleTimeout = null;
+    try {
+      const res = await messengerApi.post("/messenger/send-message", {
+        sender: myUsername,
+        receiver: contact.contactUsername,
+        content,
+      });
 
-    const handleScroll = () => {
-      if (throttleTimeout) return;
+      if (res.data.status === "0") {
+        // Do NOT manually update messages — wait for WebSocket to deliver
+        setNewMessage("");
+      } else {
+        showPopup(res.data.message || "Failed to send message", "error");
+      }
+    } catch {
+      showPopup("Network error while sending message", "error");
+    }
+  };
 
-      throttleTimeout = setTimeout(() => {
-        if (el.scrollTop === 0 && !isLoadingMore && cursorId !== -1) {
-          setIsLoadingMore(true);
-          getChatHistory(cursorId).finally(() => setIsLoadingMore(false));
-        }
-        throttleTimeout = null;
-      }, 150);
-    };
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      const el = chatRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 30);
+  };
 
-    el.addEventListener("scroll", handleScroll);
-    return () => {
-      el.removeEventListener("scroll", handleScroll);
-      if (throttleTimeout) clearTimeout(throttleTimeout);
-    };
-  }, [cursorId, isLoadingMore]);
+  const handleTextareaResize = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  };
 
   const formatDateHeader = (dateStr) => {
     const date = new Date(dateStr);
@@ -105,19 +169,8 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
 
   const formatTime = (dateStr) => format(new Date(dateStr), "hh:mm a");
 
-  const textareaRef = useRef(null);
-
-  const handleInput = () => {
-    const el = textareaRef.current;
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = el.scrollHeight + "px";
-    }
-  };
-
   return (
     <div className="chat-window">
-      {/* Header */}
       <div className="chat-header">
         <div className="chat-user-info">
           <img
@@ -144,17 +197,14 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
         </button>
       </div>
 
-      {/* Chat History */}
-      <div className="chat-history" ref={chatHistoryRef}>
+      <div className="chat-history" ref={chatRef}>
         {(() => {
           let lastDate = null;
-
-          return [...messages].reverse().map((msg) => {
+          return messages.map((msg) => {
             const sentAt = msg.sentAt || new Date().toISOString();
             const msgDate = sentAt.split("T")[0];
             const showDate = msgDate !== lastDate;
             lastDate = msgDate;
-
             const isMe = msg.sender === myUsername;
 
             return (
@@ -174,23 +224,23 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
         })()}
       </div>
 
-      {/* Input Area */}
       <div className="chat-input-area">
         <button className="chat-icon-button">
           <FaSmile />
         </button>
         <textarea
           ref={textareaRef}
-          placeholder="Type your message..."
           className="chat-textarea"
+          placeholder="Type your message..."
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onInput={handleTextareaResize}
           rows={1}
-          onInput={handleInput}
         />
-
         <button className="chat-icon-button">
           <FaPaperclip />
         </button>
-        <button className="chat-send-button">
+        <button className="chat-send-button" onClick={handleSend}>
           <FaPaperPlane />
         </button>
       </div>

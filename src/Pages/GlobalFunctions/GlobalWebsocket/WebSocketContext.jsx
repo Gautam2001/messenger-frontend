@@ -13,7 +13,7 @@ const WebSocketContext = createContext();
 export const WebSocketProvider = ({ children, token, userId }) => {
   const clientRef = useRef(null);
   const [connected, setConnected] = useState(false);
-  const [messageListeners, setMessageListeners] = useState([]);
+  const listenersRef = useRef([]);
 
   useEffect(() => {
     if (!token || !userId) return;
@@ -23,19 +23,24 @@ export const WebSocketProvider = ({ children, token, userId }) => {
 
     const client = new Client({
       webSocketFactory: () => new WebSocket(wsUrl),
-      //   debug: (str) => console.log("[STOMP]", str), //comment this later
+      debug: (str) => console.log("[STOMP]", str), // Optional: comment out later
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log("Connected to WebSocket");
+        console.log("[WebSocket] Connected");
         setConnected(true);
 
         client.subscribe(`/topic/messages/${userId}`, (message) => {
-          const body = JSON.parse(message.body);
-          messageListeners.forEach((callback) => callback(body));
+          try {
+            const body = JSON.parse(message.body);
+            console.log("[WebSocket] Message received:", body);
+            listenersRef.current.forEach((cb) => cb(body));
+          } catch (err) {
+            console.error("Failed to parse message body:", err);
+          }
         });
       },
       onDisconnect: () => {
-        console.log("Disconnected from WebSocket");
+        console.log("[WebSocket] Disconnected");
         setConnected(false);
       },
       onStompError: (frame) => {
@@ -61,7 +66,14 @@ export const WebSocketProvider = ({ children, token, userId }) => {
   };
 
   const addMessageListener = (callback) => {
-    setMessageListeners((prev) => [...prev, callback]);
+    listenersRef.current.push(callback);
+
+    // Return unsubscribe function
+    return () => {
+      listenersRef.current = listenersRef.current.filter(
+        (cb) => cb !== callback
+      );
+    };
   };
 
   return (
