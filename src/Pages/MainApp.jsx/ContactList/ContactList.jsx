@@ -1,40 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./ContactList.css";
-import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
-import { useApiClients } from "../../../Api/useApiClients";
 
-const ContactList = ({ onSelectContact }) => {
-  const { showPopup } = usePopup();
-  const { messengerApi } = useApiClients();
+const ContactList = ({ onSelectContact, contacts, setContacts }) => {
   const [search, setSearch] = useState("");
-  const [contacts, setContacts] = useState([]);
-
-  useEffect(() => {
-    const getContacts = async () => {
-      const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
-      const username = loginData?.username;
-
-      try {
-        const res = await messengerApi.post("/messenger/contacts", {
-          username,
-        });
-        const data = res.data;
-
-        if (data.status === "0") {
-          setContacts(data.contactList || []);
-        } else {
-          showPopup(data.message || "Something went wrong.", "error");
-        }
-      } catch (err) {
-        const message =
-          err.response?.data?.message ||
-          "Network error. Please try again later.";
-        showPopup(message, "error");
-      }
-    };
-
-    getContacts();
-  }, []);
 
   const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
   const currentUsername = loginData?.username;

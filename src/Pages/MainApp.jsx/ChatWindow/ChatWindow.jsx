@@ -9,7 +9,7 @@ import format from "date-fns/format";
 import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 
-const ChatWindow = ({ contact, setSelectedContact }) => {
+const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
   const { addMessageListener } = useWebSocket();
@@ -65,6 +65,7 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
           msg.receiver === contact.contactUsername) ||
         isSelfChat;
 
+      // Update messages in current open chat
       if (isInCurrentChat && !seenIdsRef.current.has(msg.messageId)) {
         setSeenIds((prev) => new Set(prev).add(msg.messageId));
         setMessages((prev) => {
@@ -74,11 +75,57 @@ const ChatWindow = ({ contact, setSelectedContact }) => {
         });
         scrollToBottom();
       }
+
+      setContacts((prevContacts) => {
+        const isSenderMe = msg.sender === myUsername;
+        const contactUsername = isSelfChat
+          ? myUsername
+          : isSenderMe
+          ? msg.receiver
+          : msg.sender;
+
+        // Try to get contact name from existing contact list
+        const existing = prevContacts.find(
+          (c) => c.contactUsername === contactUsername
+        );
+
+        const contactName = existing
+          ? existing.contactName
+          : contactUsername.split("@")[0]; // fallback: strip '@' for display
+
+        const timestamp = new Date(msg.sentAt).toISOString();
+        console.log(timestamp);
+
+        const updatedContact = {
+          contactUsername,
+          contactName,
+          latestMessage: msg.content,
+          timestamp,
+          status: msg.status || "SENT",
+        };
+
+        const existingIndex = prevContacts.findIndex(
+          (c) => c.contactUsername === contactUsername
+        );
+
+        if (existingIndex !== -1) {
+          const updated = [...prevContacts];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            ...updatedContact,
+          };
+          return updated.sort(
+            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+          );
+        } else {
+          return [updatedContact, ...prevContacts];
+        }
+      });
     };
 
     const unsubscribe = addMessageListener(listener);
     return unsubscribe;
-  }, [myUsername, contact]);
+  }, [myUsername, contact, setContacts]);
 
   const resetChat = async () => {
     setMessages([]);
