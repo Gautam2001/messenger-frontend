@@ -78,6 +78,12 @@
   text-align: right;
 }
 
+.chat-message-status {
+  margin-left: 2px;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
 .chat-date-separator {
   align-self: center;
   background-color: #e0e0e0;

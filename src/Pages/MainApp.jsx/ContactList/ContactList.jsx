@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./ContactList.css";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../../Api/useApiClients";
+import { BsCheck, BsCheckAll } from "react-icons/bs";
 
 const ContactList = ({ onSelectContact, contacts, setContacts }) => {
   const { showPopup } = usePopup();
@@ -104,13 +105,15 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
   };
 
   const getStatusIcon = (status) => {
+    console.log(contacts);
+
     switch (status) {
       case "SENT":
-        return <span className="status-icon">✓</span>;
+        return <BsCheck className="status-icon" size={16} color="gray" />;
       case "DELIVERED":
-        return <span className="status-icon">✓✓</span>;
+        return <BsCheckAll className="status-icon" size={16} color="gray" />;
       case "SEEN":
-        return <span className="status-icon seen">✓✓</span>;
+        return <BsCheckAll className="status-icon" size={16} color="#007bff" />;
       default:
         return null;
     }
@@ -147,7 +150,14 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
         <div className="contact-message">
           {!isGlobal ? (
             <>
-              {getStatusIcon(contact.status)} {contact.latestMessage}
+              <span>
+                {contact.latestMessageSender === currentUsername &&
+                  getStatusIcon(contact.status)}{" "}
+                {contact.latestMessage}
+              </span>
+              {contact.unread > 0 && (
+                <span className="unread-badge-message">{contact.unread}</span>
+              )}
             </>
           ) : (
             <i className="contact-placeholder">No conversation yet</i>

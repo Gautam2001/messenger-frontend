@@ -1,18 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./ChatWindow.css";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
-import { useWebSocket } from "../../GlobalFunctions/GlobalWebsocket/WebSocketContext";
 import { useApiClients } from "../../../Api/useApiClients";
 import { FaSmile, FaPaperclip, FaPaperPlane } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
+import { BsCheck, BsCheckAll } from "react-icons/bs";
 import format from "date-fns/format";
 import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 
-const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
+const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
-  const { addMessageListener } = useWebSocket();
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -50,82 +49,6 @@ const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
     el.addEventListener("scroll", handleScroll);
     return () => el.removeEventListener("scroll", handleScroll);
   }, [cursorId, loadingMore]);
-
-  useEffect(() => {
-    if (!myUsername) return;
-
-    const listener = (msg) => {
-      const isSelfChat =
-        msg.sender === myUsername && msg.receiver === myUsername;
-
-      const isInCurrentChat =
-        (msg.sender === contact.contactUsername &&
-          msg.receiver === myUsername) ||
-        (msg.sender === myUsername &&
-          msg.receiver === contact.contactUsername) ||
-        isSelfChat;
-
-      // Update messages in current open chat
-      if (isInCurrentChat && !seenIdsRef.current.has(msg.messageId)) {
-        setSeenIds((prev) => new Set(prev).add(msg.messageId));
-        setMessages((prev) => {
-          const alreadyExists = prev.find((m) => m.messageId === msg.messageId);
-          if (alreadyExists) return prev;
-          return [...prev, msg];
-        });
-        scrollToBottom();
-      }
-
-      setContacts((prevContacts) => {
-        const isSenderMe = msg.sender === myUsername;
-        const contactUsername = isSelfChat
-          ? myUsername
-          : isSenderMe
-          ? msg.receiver
-          : msg.sender;
-
-        // Try to get contact name from existing contact list
-        const existing = prevContacts.find(
-          (c) => c.contactUsername === contactUsername
-        );
-
-        const contactName = existing
-          ? existing.contactName
-          : contactUsername.split("@")[0]; // fallback: strip '@' for display
-
-        const timestamp = new Date(msg.sentAt).toISOString();
-        console.log(timestamp);
-
-        const updatedContact = {
-          contactUsername,
-          contactName,
-          latestMessage: msg.content,
-          timestamp,
-          status: msg.status || "SENT",
-        };
-
-        const existingIndex = prevContacts.findIndex(
-          (c) => c.contactUsername === contactUsername
-        );
-
-        if (existingIndex !== -1) {
-          const updated = [...prevContacts];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            ...updatedContact,
-          };
-          return updated.sort(
-            (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-          );
-        } else {
-          return [updatedContact, ...prevContacts];
-        }
-      });
-    };
-
-    const unsubscribe = addMessageListener(listener);
-    return unsubscribe;
-  }, [myUsername, contact, setContacts]);
 
   const resetChat = async () => {
     setMessages([]);
@@ -182,8 +105,7 @@ const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
       });
 
       if (res.data.status === "0") {
-        // Do NOT manually update messages — wait for WebSocket to deliver
-        setNewMessage("");
+        setNewMessage(""); // rely on WebSocket to push the sent message
       } else {
         showPopup(res.data.message || "Failed to send message", "error");
       }
@@ -198,6 +120,23 @@ const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
       if (el) el.scrollTop = el.scrollHeight;
     }, 30);
   };
+
+  useEffect(() => {
+    if (
+      liveMessage &&
+      contact &&
+      (liveMessage.sender === contact.contactUsername ||
+        liveMessage.receiver === contact.contactUsername)
+    ) {
+      const alreadySeen = seenIdsRef.current.has(liveMessage.messageId);
+      if (!alreadySeen) {
+        setMessages((prev) => [...prev, liveMessage]);
+        setSeenIds((prev) => new Set(prev.add(liveMessage.messageId)));
+
+        scrollToBottom();
+      }
+    }
+  }, [liveMessage, contact]);
 
   const handleTextareaResize = () => {
     const el = textareaRef.current;
@@ -263,7 +202,22 @@ const ChatWindow = ({ contact, setSelectedContact, contacts, setContacts }) => {
                 )}
                 <div className={`chat-message ${isMe ? "sent" : "received"}`}>
                   <div className="chat-message-text">{msg.content}</div>
-                  <div className="chat-message-time">{formatTime(sentAt)}</div>
+                  <div className="chat-message-time">
+                    {formatTime(sentAt)}{" "}
+                    {isMe && (
+                      <span className="chat-message-status">
+                        {msg.status === "SENT" && (
+                          <BsCheck size={16} color="gray" />
+                        )}
+                        {msg.status === "DELIVERED" && (
+                          <BsCheckAll size={16} color="gray" />
+                        )}
+                        {msg.status === "SEEN" && (
+                          <BsCheckAll size={16} color="#007bff" />
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </React.Fragment>
             );
