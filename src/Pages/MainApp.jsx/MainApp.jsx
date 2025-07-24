@@ -17,27 +17,78 @@ const MainApp = () => {
   const { addMessageListener } = useWebSocket();
   const seenMessageIdsRef = useRef(new Set());
 
+  const fetchContacts = async () => {
+    const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
+    const username = loginData?.username;
+
+    if (!username) {
+      showPopup("User not logged in. Please re-login.", "error");
+      return;
+    }
+
+    setMyUsername(username);
+
+    try {
+      const contactsRes = await messengerApi.post("/messenger/contacts", {
+        username,
+      });
+
+      if (contactsRes.data.status === "0") {
+        setContacts(contactsRes.data.contactList || []);
+      } else {
+        showPopup(
+          contactsRes.data.message || "Failed to load contacts",
+          "error"
+        );
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error while loading contacts.";
+      showPopup(message, "error");
+    }
+  };
+
   useEffect(() => {
     const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
     const username = loginData?.username;
-    if (username) setMyUsername(username);
 
-    const fetchContacts = async () => {
+    if (!username) {
+      showPopup("User not logged in. Please re-login.", "error");
+      return;
+    }
+
+    setMyUsername(username);
+
+    const updateDeliveredAndFetchContacts = async () => {
       try {
-        const res = await messengerApi.post("/messenger/contacts", {
-          username,
-        });
-        if (res.data.status === "0") {
-          setContacts(res.data.contactList || []);
-        } else {
-          showPopup(res.data.message || "Failed to load contacts", "error");
+        try {
+          const deliveredRes = await messengerApi.post(
+            "/messenger/message-delivered",
+            {
+              username,
+            }
+          );
+
+          if (deliveredRes.data.status !== "0") {
+            showPopup(
+              deliveredRes.data.message || "Failed to update delivered status",
+              "error"
+            );
+          }
+        } catch (err) {
+          const message =
+            err.response?.data?.message ||
+            "Network error during delivery update.";
+          showPopup(message, "error");
         }
+
+        fetchContacts();
       } catch {
-        showPopup("Network error while loading contacts", "error");
+        showPopup("Unexpected error in contact setup.", "error");
       }
     };
 
-    fetchContacts();
+    updateDeliveredAndFetchContacts();
   }, []);
 
   // WebSocket listener – runs once after username is available
@@ -61,7 +112,6 @@ const MainApp = () => {
         setLiveMessage(msg);
       }
 
-      // Always update contact list for latest message
       setContacts((prevContacts) => {
         const isSenderMe = msg.sender === myUsername;
         const contactUsername = isSelfChat
@@ -125,6 +175,7 @@ const MainApp = () => {
             contact={selectedContact}
             setSelectedContact={setSelectedContact}
             liveMessage={liveMessage}
+            refreshContacts={fetchContacts}
           />
         ) : (
           <div className="chat-window-placeholder">

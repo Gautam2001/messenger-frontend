@@ -9,7 +9,12 @@ import format from "date-fns/format";
 import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 
-const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
+const ChatWindow = ({
+  contact,
+  setSelectedContact,
+  liveMessage,
+  refreshContacts,
+}) => {
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
 
@@ -63,6 +68,29 @@ const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
       const prevScrollHeight = el?.scrollHeight || 0;
 
       setLoadingMore(true);
+
+      try {
+        const deliveredRes = await messengerApi.post(
+          "/messenger/message-seen",
+          {
+            username: myUsername,
+            contactUsername: contact.contactUsername,
+          }
+        );
+
+        if (deliveredRes.data.status !== "0") {
+          showPopup(
+            deliveredRes.data.message || "Failed to update delivered status",
+            "error"
+          );
+        }
+      } catch (err) {
+        const message =
+          err.response?.data?.message ||
+          "Network error during delivery update.";
+        showPopup(message, "error");
+      }
+
       const res = await messengerApi.post("/messenger/chat-history", {
         username: myUsername,
         contactUsername: contact.contactUsername,
@@ -71,6 +99,7 @@ const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
 
       if (res.data.status === "0") {
         const newMsgs = res.data.chatHistory;
+
         setMessages((prev) => [...newMsgs, ...prev]);
         setSeenIds(
           (prev) => new Set([...prev, ...newMsgs.map((m) => m.messageId)])
@@ -86,10 +115,15 @@ const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
       } else {
         showPopup(res.data.message || "Failed to load chat history", "error");
       }
-    } catch {
-      showPopup("Network error while loading chat history", "error");
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error. Please try again later.";
+      showPopup(message, "error");
     } finally {
       setLoadingMore(false);
+      if (typeof refreshContacts === "function") {
+        refreshContacts();
+      }
     }
   };
 
@@ -109,8 +143,10 @@ const ChatWindow = ({ contact, setSelectedContact, liveMessage }) => {
       } else {
         showPopup(res.data.message || "Failed to send message", "error");
       }
-    } catch {
-      showPopup("Network error while sending message", "error");
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error. Please try again later.";
+      showPopup(message, "error");
     }
   };
 

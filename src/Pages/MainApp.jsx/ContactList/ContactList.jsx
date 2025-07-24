@@ -67,8 +67,11 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
             } else {
               showPopup(res.data.message || "No users found.", "info");
             }
-          } catch {
-            showPopup("Network error while searching users", "error");
+          } catch (err) {
+            const message =
+              err.response?.data?.message ||
+              "Network error. Please try again later.";
+            showPopup(message, "error");
           }
         };
 
