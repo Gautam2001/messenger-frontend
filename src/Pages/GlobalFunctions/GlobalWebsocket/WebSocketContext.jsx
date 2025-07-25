@@ -23,6 +23,9 @@ export const WebSocketProvider = ({ children, token, userId }) => {
 
     const client = new Client({
       webSocketFactory: () => new WebSocket(wsUrl),
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
       debug: (str) => console.log("[STOMP]", str), // Optional: comment out later
       reconnectDelay: 5000,
       onConnect: () => {

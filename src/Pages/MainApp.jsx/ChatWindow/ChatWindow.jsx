@@ -1,3 +1,4 @@
+// ChatWindow.jsx
 import React, { useEffect, useRef, useState } from "react";
 import "./ChatWindow.css";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
@@ -15,9 +16,7 @@ const ChatWindow = ({
   liveMessage,
   refreshContacts,
 }) => {
-  const { showPopup } = usePopup();
-  const { messengerApi } = useApiClients();
-
+  // State
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [myUsername, setMyUsername] = useState("");
@@ -25,24 +24,35 @@ const ChatWindow = ({
   const [seenIds, setSeenIds] = useState(new Set());
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // Refs
   const chatRef = useRef(null);
   const textareaRef = useRef(null);
   const seenIdsRef = useRef(seenIds);
 
+  // Hooks
+  const { showPopup } = usePopup();
+  const { messengerApi } = useApiClients();
+
+  // Sync seenIds in ref
   useEffect(() => {
     seenIdsRef.current = seenIds;
   }, [seenIds]);
 
+  // Get username from session
   useEffect(() => {
     const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
-    if (loginData?.username) setMyUsername(loginData.username);
+    if (loginData?.username) {
+      setMyUsername(loginData.username);
+    }
   }, []);
 
+  // Load initial chat
   useEffect(() => {
     if (!myUsername || !contact?.contactUsername) return;
     resetChat();
   }, [myUsername, contact]);
 
+  // Infinite scroll for older messages
   useEffect(() => {
     const el = chatRef.current;
     if (!el) return;
@@ -54,6 +64,31 @@ const ChatWindow = ({
     el.addEventListener("scroll", handleScroll);
     return () => el.removeEventListener("scroll", handleScroll);
   }, [cursorId, loadingMore]);
+
+  // Live incoming message from WebSocket
+  useEffect(() => {
+    if (
+      liveMessage &&
+      contact &&
+      (liveMessage.sender === contact.contactUsername ||
+        liveMessage.receiver === contact.contactUsername)
+    ) {
+      const alreadySeen = seenIdsRef.current.has(liveMessage.messageId);
+      if (!alreadySeen) {
+        setMessages((prev) => [...prev, liveMessage]);
+        setSeenIds((prev) => new Set(prev.add(liveMessage.messageId)));
+        scrollToBottom();
+      }
+    }
+  }, [liveMessage, contact]);
+
+  // Helpers
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      const el = chatRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    }, 30);
+  };
 
   const resetChat = async () => {
     setMessages([]);
@@ -69,26 +104,22 @@ const ChatWindow = ({
 
       setLoadingMore(true);
 
+      // Notify server to mark messages as seen
       try {
-        const deliveredRes = await messengerApi.post(
-          "/messenger/message-seen",
-          {
-            username: myUsername,
-            contactUsername: contact.contactUsername,
-          }
-        );
+        const seenRes = await messengerApi.post("/messenger/message-seen", {
+          username: myUsername,
+          contactUsername: contact.contactUsername,
+        });
 
-        if (deliveredRes.data.status !== "0") {
+        if (seenRes.data.status !== "0") {
           showPopup(
-            deliveredRes.data.message || "Failed to update delivered status",
+            seenRes.data.message || "Failed to update seen status",
             "error"
           );
         }
       } catch (err) {
-        const message =
-          err.response?.data?.message ||
-          "Network error during delivery update.";
-        showPopup(message, "error");
+        const msg = err.response?.data?.message || "Delivery update failed.";
+        showPopup(msg, "error");
       }
 
       const res = await messengerApi.post("/messenger/chat-history", {
@@ -99,7 +130,6 @@ const ChatWindow = ({
 
       if (res.data.status === "0") {
         const newMsgs = res.data.chatHistory;
-
         setMessages((prev) => [...newMsgs, ...prev]);
         setSeenIds(
           (prev) => new Set([...prev, ...newMsgs.map((m) => m.messageId)])
@@ -116,9 +146,8 @@ const ChatWindow = ({
         showPopup(res.data.message || "Failed to load chat history", "error");
       }
     } catch (err) {
-      const message =
-        err.response?.data?.message || "Network error. Please try again later.";
-      showPopup(message, "error");
+      const msg = err.response?.data?.message || "Network error.";
+      showPopup(msg, "error");
     } finally {
       setLoadingMore(false);
       if (typeof refreshContacts === "function") {
@@ -139,40 +168,15 @@ const ChatWindow = ({
       });
 
       if (res.data.status === "0") {
-        setNewMessage(""); // rely on WebSocket to push the sent message
+        setNewMessage(""); // Message is pushed live via WebSocket
       } else {
         showPopup(res.data.message || "Failed to send message", "error");
       }
     } catch (err) {
-      const message =
-        err.response?.data?.message || "Network error. Please try again later.";
-      showPopup(message, "error");
+      const msg = err.response?.data?.message || "Failed to send message";
+      showPopup(msg, "error");
     }
   };
-
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      const el = chatRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    }, 30);
-  };
-
-  useEffect(() => {
-    if (
-      liveMessage &&
-      contact &&
-      (liveMessage.sender === contact.contactUsername ||
-        liveMessage.receiver === contact.contactUsername)
-    ) {
-      const alreadySeen = seenIdsRef.current.has(liveMessage.messageId);
-      if (!alreadySeen) {
-        setMessages((prev) => [...prev, liveMessage]);
-        setSeenIds((prev) => new Set(prev.add(liveMessage.messageId)));
-
-        scrollToBottom();
-      }
-    }
-  }, [liveMessage, contact]);
 
   const handleTextareaResize = () => {
     const el = textareaRef.current;
@@ -191,8 +195,17 @@ const ChatWindow = ({
 
   const formatTime = (dateStr) => format(new Date(dateStr), "hh:mm a");
 
+  const getStatusIcon = (status) => {
+    if (status === "SENT") return <BsCheck size={16} color="gray" />;
+    if (status === "DELIVERED") return <BsCheckAll size={16} color="gray" />;
+    if (status === "SEEN") return <BsCheckAll size={16} color="#007bff" />;
+    return null;
+  };
+
+  // Render
   return (
     <div className="chat-window">
+      {/* Header */}
       <div className="chat-header">
         <div className="chat-user-info">
           <img
@@ -219,6 +232,7 @@ const ChatWindow = ({
         </button>
       </div>
 
+      {/* Messages */}
       <div className="chat-history" ref={chatRef}>
         {(() => {
           let lastDate = null;
@@ -239,20 +253,7 @@ const ChatWindow = ({
                 <div className={`chat-message ${isMe ? "sent" : "received"}`}>
                   <div className="chat-message-text">{msg.content}</div>
                   <div className="chat-message-time">
-                    {formatTime(sentAt)}{" "}
-                    {isMe && (
-                      <span className="chat-message-status">
-                        {msg.status === "SENT" && (
-                          <BsCheck size={16} color="gray" />
-                        )}
-                        {msg.status === "DELIVERED" && (
-                          <BsCheckAll size={16} color="gray" />
-                        )}
-                        {msg.status === "SEEN" && (
-                          <BsCheckAll size={16} color="#007bff" />
-                        )}
-                      </span>
-                    )}
+                    {formatTime(sentAt)} {isMe && getStatusIcon(msg.status)}
                   </div>
                 </div>
               </React.Fragment>
@@ -261,6 +262,7 @@ const ChatWindow = ({
         })()}
       </div>
 
+      {/* Input */}
       <div className="chat-input-area">
         <button className="chat-icon-button">
           <FaSmile />
