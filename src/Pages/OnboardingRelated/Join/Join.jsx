@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import "./Join.css";
 import { LuMessagesSquare } from "react-icons/lu";
-import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
-import { useApiClients } from "../../Api/useApiClients";
+import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
+import { useApiClients } from "../../../Api/useApiClients";
+import { useNavigate } from "react-router-dom";
 
 const Join = () => {
+  const navigate = useNavigate();
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
   const [username, setUsername] = useState("");
@@ -22,11 +24,13 @@ const Join = () => {
 
       if (data.status === "0") {
         showPopup(data.message || "Joined successfully!", "success"); //proceed for login
+        navigate("/login");
       } else if (data.status === "1") {
         showPopup(
           data.message || "User does not exist, please Signup!",
           "error"
         ); //proceed for signup
+        navigate("/signup");
       } else {
         showPopup(data.message || "Something went wrong.", "error");
       }
@@ -44,7 +48,7 @@ const Join = () => {
       <div className="join-card">
         <div className="join-header">
           <LuMessagesSquare size={60} cursor={"pointer"} />
-          <h1>Join Messengers</h1>
+          <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
         </div>
 

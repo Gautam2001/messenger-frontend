@@ -36,6 +36,8 @@ export const createAxiosInstance = (baseURL) => {
         "/messenger/exists",
         "/auth/login",
         "/auth/refresh",
+        "/auth/request-signup",
+        "/auth/signup",
       ];
 
       if (!allowedUrls.some((url) => config.url.includes(url)) && !token) {

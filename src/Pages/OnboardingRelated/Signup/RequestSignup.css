@@ -1,54 +1,69 @@
-.login-card {
+.req-signup-card {
   background-color: white;
   padding: 2rem;
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 90%;
-  /* text-align: center; */
+  max-width: 550px;
+  width: 100%;
   transition: all 0.3s ease-in-out;
 }
 
-.login-header {
+.req-signup-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-.login-header {
+.req-signup-header {
   font-size: 3.5rem;
 }
 
-.login-header h1 {
+.req-signup-header h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
   color: #333;
 }
 
-.login-header p {
+.req-signup-header p {
   margin-top: 0;
   font-size: 0.95rem;
   color: #555;
 }
 
-.login-form {
+.req-signup-form {
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.login-footer {
-  margin-top: 1rem;
-  font-size: 0.85rem;
+.form-row {
+  display: flex;
+  gap: 1rem;
 }
 
-.login-footer a {
+.form-row .form-group {
+  flex: 1;
+}
+
+.primary-button {
+  width: 60%;
+  margin: auto;
+}
+
+.req-signup-footer {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: center;
+}
+
+.req-signup-footer a {
   color: #4a90e2;
   text-decoration: none;
 }
 
-.login-footer a:hover {
+.req-signup-footer a:hover {
   text-decoration: underline;
 }

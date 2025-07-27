@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./Login.css";
 import { LuMessagesSquare } from "react-icons/lu";
-import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
-import { useApiClients } from "../../Api/useApiClients";
+import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
+import { useApiClients } from "../../../Api/useApiClients";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -50,10 +50,12 @@ const Login = () => {
           navigate("/chats");
         } else {
           showPopup(loginData.message || "Something went wrong.", "error"); //proceed  for signup
+          navigate("/signup");
         }
       } else {
         //user does not exists in messenger table
         showPopup(data.message || "Something went wrong.", "error"); //proceed for join
+        navigate("/signup");
       }
     } catch (err) {
       const message =
@@ -69,7 +71,7 @@ const Login = () => {
       <div className="login-card">
         <div className="login-header">
           <LuMessagesSquare size={60} cursor={"pointer"} />
-          <h1>Join Messengers</h1>
+          <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
         </div>
 
@@ -106,6 +108,15 @@ const Login = () => {
             {status === "loading" ? "Logging In..." : "Login"}
           </button>
         </form>
+
+        <div className="login-footer">
+          <p>
+            <a href="/forgot-password">Forgot Password?</a>
+          </p>
+          <p>
+            Become a member? <a href="/signup">Sign up here</a>
+          </p>
+        </div>
       </div>
     </div>
   );

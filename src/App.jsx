@@ -4,8 +4,10 @@ import { GlobalPopupProvider } from "./Pages/GlobalFunctions/GlobalPopup/GlobalP
 import "./Pages/GlobalFunctions/GlobalPopup/GlobalPopup.css";
 
 import Maintenance from "./Pages/GlobalFunctions/Maintenance";
-import Join from "./Pages/LoginRelated/Join";
-import Login from "./Pages/LoginRelated/Login";
+import Join from "./Pages/OnboardingRelated/Join/Join";
+import Login from "./Pages/OnboardingRelated/Login/Login";
+import RequestSignup from "./Pages/OnboardingRelated/Signup/RequestSignup";
+import Signup from "./Pages/OnboardingRelated/Signup/Signup";
 import MainPage from "./Pages/MainPage/MainPage";
 import ProtectedRoute from "./ProtectedRoutes/ProtectedRoute";
 import { WebSocketProvider } from "./Pages/GlobalFunctions/GlobalWebsocket/WebSocketContext";
@@ -35,6 +37,8 @@ const App = () => {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/signup" element={<RequestSignup />} />
+          <Route path="/signup-otp" element={<Signup />} />
 
           {/* Protected Route with WebSocket */}
           <Route element={<ProtectedRoute />}>
