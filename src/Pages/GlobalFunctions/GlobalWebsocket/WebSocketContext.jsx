@@ -26,28 +26,37 @@ export const WebSocketProvider = ({ children, token, userId }) => {
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      debug: (str) => console.log("[STOMP]", str), // Optional: comment out later
+      debug: (str) => {
+        if (
+          str.includes("SEND") ||
+          str.includes("CONNECTED") ||
+          str.includes("DISCONNECTED") ||
+          str.includes("ERROR")
+        ) {
+          console.log("[STOMP]", str);
+        }
+      },
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log("[WebSocket] Connected");
+        console.log("✅ [WebSocket] Connected");
         setConnected(true);
 
         client.subscribe(`/topic/messages/${userId}`, (message) => {
           try {
             const body = JSON.parse(message.body);
-            console.log("[WebSocket] Message received:", body);
+            console.log("📩 [WebSocket] Message received:", body);
             listenersRef.current.forEach((cb) => cb(body));
           } catch (err) {
-            console.error("Failed to parse message body:", err);
+            console.error("❌ [WebSocket] Failed to parse message body:", err);
           }
         });
       },
       onDisconnect: () => {
-        console.log("[WebSocket] Disconnected");
+        console.log("❌ [WebSocket] Disconnected");
         setConnected(false);
       },
       onStompError: (frame) => {
-        console.error("STOMP error:", frame.headers["message"]);
+        console.error("💥 [WebSocket] STOMP error:", frame.headers["message"]);
       },
     });
 
@@ -61,17 +70,25 @@ export const WebSocketProvider = ({ children, token, userId }) => {
 
   const sendMessage = (destination, body) => {
     if (clientRef.current && connected) {
-      clientRef.current.publish({
-        destination,
-        body: JSON.stringify(body),
-      });
+      console.log("📤 [WebSocket] Sending to:", destination, "Payload:", body);
+      try {
+        clientRef.current.publish({
+          destination,
+          body: JSON.stringify(body),
+        });
+        console.log("✅ [WebSocket] Message published");
+      } catch (err) {
+        console.error("❌ [WebSocket] Publish error:", err);
+      }
+    } else {
+      console.warn(
+        "⚠️ [WebSocket] Cannot send — not connected or client missing"
+      );
     }
   };
 
   const addMessageListener = (callback) => {
     listenersRef.current.push(callback);
-
-    // Return unsubscribe function
     return () => {
       listenersRef.current = listenersRef.current.filter(
         (cb) => cb !== callback

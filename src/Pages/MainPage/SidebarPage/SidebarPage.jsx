@@ -1,11 +1,10 @@
-// Sidebar.jsx
 import React from "react";
-import "./Sidebar.css";
+import "./SidebarPage.css";
 import { LuMessagesSquare } from "react-icons/lu";
 import { FiUser, FiUsers, FiSettings } from "react-icons/fi";
 import { BsSun, BsMoon } from "react-icons/bs";
 
-const Sidebar = () => {
+const SidebarPage = () => {
   const isDarkMode = false; // Replace with context/state if implementing theme toggle
 
   return (
@@ -39,4 +38,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SidebarPage;

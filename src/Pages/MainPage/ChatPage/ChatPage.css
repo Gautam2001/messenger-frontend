@@ -47,7 +47,11 @@
 
 .chat-user-status {
   font-size: 0.85rem;
-  color: #4caf50; /* green for online */
+  color: #4caf50;
+}
+
+.chat-username {
+  font-size: 0.85rem;
 }
 
 /* Chat History */
@@ -102,48 +106,4 @@
 .chat-message.sent {
   background-color: #dcf8c6;
   align-self: flex-end;
-}
-
-/* Input Section */
-.chat-input-area {
-  height: 60px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-  border-top: 1px solid #ddd;
-  background-color: #f5f5f5;
-}
-
-.chat-textarea {
-  flex: 1;
-  min-height: 38px;
-  max-height: 100px; /* optional limit */
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  padding: 8px 1rem;
-  font-size: 0.95rem;
-  outline: none;
-  resize: none;
-  overflow-y: auto;
-  line-height: 1.4;
-  background-color: white;
-}
-
-.chat-icon-button {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #555;
-  cursor: pointer;
-}
-
-.chat-send-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  font-size: 1.1rem;
-  padding: 8px 12px;
-  border-radius: 50%;
-  cursor: pointer;
 }

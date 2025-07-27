@@ -61,7 +61,12 @@
 }
 
 .contact-item:hover {
-  background-color: #f0f5ff;
+  background-color: #d1ddf5;
+}
+
+.selected-contact {
+  background-color: #dbeafe;
+  border-left: 4px solid #3b82f6;
 }
 
 .contact-avatar {

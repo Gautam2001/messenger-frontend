@@ -1,41 +1,82 @@
-// ContactList.jsx
-import React, { useState, useEffect, useRef } from "react";
-import "./ContactList.css";
+import React, { useEffect, useRef, useState } from "react";
+import "./ContactsPage.css";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import { useApiClients } from "../../../Api/useApiClients";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 
-const ContactList = ({ onSelectContact, contacts, setContacts }) => {
+const ContactsPage = ({
+  contactsList,
+  setContactsList,
+  selectedContact,
+  onSelectContact,
+  loadingContacts,
+}) => {
+  const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
+  const username = loginData?.username;
+  const debounceTimeout = useRef(null);
   const { showPopup } = usePopup();
   const { messengerApi } = useApiClients();
-
   const [search, setSearch] = useState("");
-  const debounceTimeout = useRef(null);
-  const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
-  const currentUsername = loginData?.username;
 
-  // Split contacts into local and global
-  const localContacts = contacts.filter(
+  useEffect(() => {
+    console.log("contacts page: ", contactsList);
+  }, []);
+
+  const existingContactsList = contactsList.filter(
     (c) => c.latestMessage && c.timestamp !== null
   );
-  const globalContacts = contacts.filter(
-    (c) => (!c.latestMessage || c.latestMessage === "") && c.timestamp === null
+  const newContactsList = contactsList.filter(
+    (c) =>
+      (!c.latestMessage ||
+        c.latestMessage === "" ||
+        c.latestMessage === "No conversations yet.") &&
+      c.timestamp === null
   );
 
-  // Search filter
-  const matchesSearch = (contact) => {
+  const matchesSearch = (searchContact) => {
     const lower = search.toLowerCase();
     return (
-      contact.contactName.toLowerCase().includes(lower) ||
-      contact.contactUsername.toLowerCase().includes(lower)
+      searchContact.contactName.toLowerCase().includes(lower) ||
+      searchContact.contactUsername.toLowerCase().includes(lower)
     );
   };
 
-  const filteredLocal = localContacts.filter(matchesSearch);
-  const filteredGlobal = globalContacts.filter(matchesSearch);
-
   const looksLikeEmail = (text) =>
     text.includes("@") && /\S+@\S+\.\S+/.test(text);
+
+  const searchGlobalUsers = async (searchEmail) => {
+    try {
+      const res = await messengerApi.post("/messenger/search-user", {
+        username: username,
+        contactUsername: searchEmail,
+      });
+
+      if (res.data.status === "0" && Array.isArray(res.data.users)) {
+        const newGlobalUsers = res.data.users
+          .filter(
+            (u) => !contactsList.some((c) => c.contactUsername === u.username)
+          )
+          .map((u) => ({
+            contactName: u.name,
+            contactUsername: u.username,
+            userId: u.userId,
+            latestMessage: "",
+            timestamp: null,
+            status: "",
+          }));
+
+        if (newGlobalUsers.length > 0) {
+          setContactsList((prev) => [...prev, ...newGlobalUsers]);
+        }
+      } else {
+        showPopup(res.data.message || "No users found.", "info");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Network error. Please try again later.";
+      showPopup(message, "error");
+    }
+  };
 
   // Debounced search for global users
   useEffect(() => {
@@ -50,41 +91,12 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
     return () => clearTimeout(debounceTimeout.current);
   }, [search]);
 
-  const searchGlobalUsers = async (email) => {
-    try {
-      const res = await messengerApi.post("/messenger/search-user", {
-        username: currentUsername,
-        contactUsername: email,
-      });
+  const filteredExistingContactsList =
+    existingContactsList.filter(matchesSearch); //final existing contact list
+  const filteredNewContactsList = newContactsList.filter(matchesSearch); //final new contact list
 
-      if (res.data.status === "0" && Array.isArray(res.data.users)) {
-        const newGlobalUsers = res.data.users
-          .filter(
-            (u) => !contacts.some((c) => c.contactUsername === u.username)
-          )
-          .map((u) => ({
-            contactName: u.name,
-            contactUsername: u.username,
-            userId: u.userId,
-            latestMessage: "",
-            timestamp: null,
-            status: "",
-          }));
+  //formatting chages here for visuals
 
-        if (newGlobalUsers.length > 0) {
-          setContacts((prev) => [...prev, ...newGlobalUsers]);
-        }
-      } else {
-        showPopup(res.data.message || "No users found.", "info");
-      }
-    } catch (err) {
-      const message =
-        err.response?.data?.message || "Network error. Please try again later.";
-      showPopup(message, "error");
-    }
-  };
-
-  // Format timestamp
   const formatTime = (isoString) => {
     const date = new Date(isoString);
     const now = new Date();
@@ -110,7 +122,6 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
     }
   };
 
-  // Get status icon based on delivery status
   const getStatusIcon = (status) => {
     switch (status) {
       case "SENT":
@@ -124,35 +135,41 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
     }
   };
 
-  // Render each contact item
-  const ContactItem = ({ contact, isGlobal = false }) => {
-    const isSelf = contact.contactUsername === currentUsername;
+  const RenderContact = ({ displayContact, isGlobal = false }) => {
+    if (!displayContact) {
+      return null;
+    }
+    const isSelf = displayContact.contactUsername === username;
 
     return (
       <div
-        key={contact.contactUsername}
-        className="contact-item"
+        key={displayContact.contactUsername}
+        className={`contact-item ${
+          selectedContact?.contactUsername === displayContact.contactUsername
+            ? "selected-contact"
+            : ""
+        }`}
         onClick={() => {
-          onSelectContact(contact);
+          onSelectContact(displayContact);
           setSearch("");
         }}
       >
         <img
           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-            contact.contactName
+            displayContact.contactName
           )}&background=007bff&color=fff&rounded=true&size=42`}
-          alt={contact.contactName}
+          alt={displayContact.contactName}
           className="contact-avatar"
         />
         <div className="contact-info">
           <div className="contact-top">
             <span className="contact-name">
-              {contact.contactName}
+              {displayContact.contactName}
               {isSelf ? " (You)" : ""}
             </span>
-            {!isGlobal && contact.timestamp && (
+            {!isGlobal && displayContact.timestamp && (
               <span className="contact-time">
-                {formatTime(contact.timestamp)}
+                {formatTime(displayContact.timestamp)}
               </span>
             )}
           </div>
@@ -160,12 +177,14 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
             {!isGlobal ? (
               <>
                 <span>
-                  {contact.latestMessageSender === currentUsername &&
-                    getStatusIcon(contact.status)}{" "}
-                  {contact.latestMessage}
+                  {displayContact.latestMessageSender === username &&
+                    getStatusIcon(displayContact.status)}{" "}
+                  {displayContact.latestMessage}
                 </span>
-                {contact.unread > 0 && (
-                  <span className="unread-badge-message">{contact.unread}</span>
+                {displayContact.unread > 0 && (
+                  <span className="unread-badge-message">
+                    {displayContact.unread}
+                  </span>
                 )}
               </>
             ) : (
@@ -176,6 +195,8 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
       </div>
     );
   };
+
+  if (loadingContacts) return <div>Loading chat messages...</div>;
 
   return (
     <div className="contact-list">
@@ -190,22 +211,26 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
       />
 
       <div className="contacts-scroll">
-        {filteredLocal.length === 0 && filteredGlobal.length === 0 ? (
+        {filteredExistingContactsList.length === 0 &&
+        filteredNewContactsList.length === 0 ? (
           <div className="no-contacts">No contacts found.</div>
         ) : (
           <>
-            {filteredLocal.map((contact) => (
-              <ContactItem key={contact.contactUsername} contact={contact} />
+            {filteredExistingContactsList.map((existingContact) => (
+              <RenderContact
+                key={existingContact.contactUsername}
+                displayContact={existingContact}
+              />
             ))}
 
-            {filteredGlobal.length > 0 && (
+            {filteredNewContactsList.length > 0 && (
               <div className="global-contacts-header">Global Users</div>
             )}
 
-            {filteredGlobal.map((contact) => (
-              <ContactItem
-                key={contact.contactUsername}
-                contact={contact}
+            {filteredNewContactsList.map((newContact) => (
+              <RenderContact
+                key={newContact.contactUsername}
+                displayContact={newContact}
                 isGlobal
               />
             ))}
@@ -216,4 +241,4 @@ const ContactList = ({ onSelectContact, contacts, setContacts }) => {
   );
 };
 
-export default ContactList;
+export default ContactsPage;
