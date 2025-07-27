@@ -80,12 +80,14 @@
   font-size: 0.75rem;
   color: #666;
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
 }
 
 .chat-message-status {
-  margin-left: 2px;
-  display: inline-flex;
-  vertical-align: middle;
+  margin-left: 15px;
 }
 
 .chat-date-separator {

@@ -6,6 +6,7 @@ import { usePopup } from "../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import ContactsPage from "./ContactsPage/ContactsPage";
 import ChatPage from "./ChatPage/ChatPage";
 import SidebarPage from "./SidebarPage/SidebarPage";
+import ShowcasePage from "../ShowcasePage/ShowcasePage";
 
 const MainPage = () => {
   const DEBOUNCE_INTERVAL = 10000;
@@ -183,6 +184,7 @@ const MainPage = () => {
     );
   };
 
+  // Websocket
   useEffect(() => {
     const listener = (msg) => {
       const participants = [msg.sender, msg.receiver];
@@ -207,7 +209,10 @@ const MainPage = () => {
         }
 
         if (isChatMatch) {
-          setChatHistory((prev) => [...prev, msg]);
+          setChatHistory((prev) => {
+            if (prev.some((m) => m.messageId === msg.messageId)) return prev;
+            return [...prev, msg];
+          });
         }
 
         setContactsList((prevList) =>
@@ -298,9 +303,7 @@ const MainPage = () => {
             fetchOldChats={fetchChatHistory}
           />
         ) : (
-          <div className="chat-window-placeholder">
-            <p>Select a chat to start messaging</p>
-          </div>
+          <ShowcasePage />
         )}
       </div>
     </div>

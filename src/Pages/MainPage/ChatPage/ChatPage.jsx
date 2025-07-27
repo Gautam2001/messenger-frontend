@@ -27,7 +27,7 @@ const ChatPage = ({
   const isUserNearBottom = () => {
     const el = chatRef.current;
     if (!el) return false;
-    const threshold = 250; // px from bottom
+    const threshold = 400; // px from bottom
     return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
   };
 
@@ -61,7 +61,10 @@ const ChatPage = ({
     const isNewMessage = chatHistory.length > prevMessageCount.current;
     prevMessageCount.current = chatHistory.length;
 
-    if (isNewMessage && isUserNearBottom()) {
+    const lastMessage = chatHistory[chatHistory.length - 1];
+    const isFromMe = lastMessage?.sender === username;
+
+    if (isNewMessage && (isUserNearBottom() || isFromMe)) {
       scrollToBottom();
     }
   }, [chatHistory]);
@@ -151,7 +154,11 @@ const ChatPage = ({
                 )}
                 <div className={`chat-message ${isMe ? "sent" : "received"}`}>
                   <div className="chat-message-text">{msg.content}</div>
-                  <div className="chat-message-time">
+                  <div
+                    className={`chat-message-time ${
+                      isMe ? "chat-message-status" : ""
+                    }`}
+                  >
                     {formatTime(sentAt)} {isMe && getStatusIcon(msg.status)}
                   </div>
                 </div>

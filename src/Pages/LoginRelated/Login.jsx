@@ -46,7 +46,7 @@ const Login = () => {
             "LoginData",
             JSON.stringify(loginData, null, 2)
           );
-          console.log("LoginData : " + sessionStorage.getItem("LoginData"));
+          // console.log("LoginData : " + sessionStorage.getItem("LoginData"));
           navigate("/chats");
         } else {
           showPopup(loginData.message || "Something went wrong.", "error"); //proceed  for signup

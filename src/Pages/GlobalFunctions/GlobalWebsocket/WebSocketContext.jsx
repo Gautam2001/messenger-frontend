@@ -19,52 +19,63 @@ export const WebSocketProvider = ({ children, token, userId }) => {
     if (!token || !userId) return;
 
     const baseUrl = import.meta.env.VITE_MESSENGER_URL.replace(/^http/, "ws");
-    const wsUrl = `${baseUrl}ws?token=${encodeURIComponent(token)}`;
 
-    const client = new Client({
-      webSocketFactory: () => new WebSocket(wsUrl),
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-      // debug: (str) => {
-      //   if (
-      //     str.includes("SEND") ||
-      //     str.includes("CONNECTED") ||
-      //     str.includes("DISCONNECTED") ||
-      //     str.includes("ERROR")
-      //   ) {
-      //     console.log("[STOMP]", str);
-      //   }
-      // },
-      reconnectDelay: 5000,
-      onConnect: () => {
-        console.log("[WebSocket] Connected");
-        setConnected(true);
+    let currentToken = token;
 
-        client.subscribe(`/topic/messages/${userId}`, (message) => {
-          try {
-            const body = JSON.parse(message.body);
-            // console.log("[WebSocket] Message received:", body);
-            listenersRef.current.forEach((cb) => cb(body));
-          } catch (err) {
-            console.error("[WebSocket] Failed to parse message body:", err);
-          }
-        });
-      },
-      onDisconnect: () => {
-        console.log("[WebSocket] Disconnected");
+    const createClient = (tokenToUse) => {
+      const wsUrl = `${baseUrl}ws?token=${encodeURIComponent(tokenToUse)}`;
+
+      const client = new Client({
+        webSocketFactory: () => new WebSocket(wsUrl),
+        connectHeaders: {
+          Authorization: `Bearer ${tokenToUse}`,
+        },
+        reconnectDelay: 5000,
+        onConnect: () => {
+          console.log("[WebSocket] Connected");
+          setConnected(true);
+          client.subscribe(`/topic/messages/${userId}`, (message) => {
+            try {
+              const body = JSON.parse(message.body);
+              listenersRef.current.forEach((cb) => cb(body));
+            } catch (err) {
+              console.error("[WebSocket] Failed to parse message body:", err);
+            }
+          });
+        },
+        onDisconnect: () => {
+          console.log("[WebSocket] Disconnected");
+          setConnected(false);
+        },
+        onStompError: (frame) => {
+          console.error("[WebSocket] STOMP error:", frame.headers["message"]);
+        },
+      });
+
+      client.activate();
+      clientRef.current = client;
+    };
+
+    createClient(currentToken); // initial connect
+
+    const interval = setInterval(() => {
+      const refreshedToken = JSON.parse(
+        sessionStorage.getItem("LoginData") || "null"
+      )?.accessToken;
+
+      if (refreshedToken && refreshedToken !== currentToken) {
+        console.log("[WebSocket] Token changed. Reconnecting...");
+
+        currentToken = refreshedToken;
+        clientRef.current?.deactivate();
         setConnected(false);
-      },
-      onStompError: (frame) => {
-        console.error("[WebSocket] STOMP error:", frame.headers["message"]);
-      },
-    });
-
-    client.activate();
-    clientRef.current = client;
+        createClient(currentToken);
+      }
+    }, 30000); // checks every 30 seconds
 
     return () => {
-      client.deactivate();
+      clearInterval(interval);
+      clientRef.current?.deactivate();
     };
   }, [token, userId]);
 
