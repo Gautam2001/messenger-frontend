@@ -24,6 +24,7 @@ const MainPage = () => {
 
   const deliveredRef = useRef(new Set());
   const seenRef = useRef(new Set());
+  const unseenRef = useRef(new Set());
   const debounceTimerRef = useRef(null);
 
   const fetchContacts = async () => {
@@ -49,7 +50,6 @@ const MainPage = () => {
       if (res.data.status === "0") {
         const list = res.data.contactList || [];
         setContactsList(list);
-        console.log("Contacts", list);
 
         const selfContact = list.find((c) => c.contactUsername === username);
         if (selfContact) {
@@ -103,7 +103,6 @@ const MainPage = () => {
         });
 
         setCursorId(res.data.nextCursorId);
-        console.log("Chat history", newMsgs);
       } else {
         showPopup(res.data.message || "Failed to load chat history", "error");
       }
@@ -121,8 +120,23 @@ const MainPage = () => {
 
   useEffect(() => {
     if (!selectedContact || !selectedContact.contactUsername) return;
+
     setChatHistory([]);
     setCursorId(0);
+
+    setTimeout(() => {
+      const unseenIds = Array.from(unseenRef.current);
+      if (unseenIds.length > 0) {
+        sendMessage("/messenger/status-update", {
+          username,
+          delivered: [],
+          seen: unseenIds,
+        });
+
+        unseenIds.forEach((id) => seenRef.current.add(id));
+        unseenRef.current.clear();
+      }
+    }, 100);
   }, [selectedContact]);
 
   useEffect(() => {
@@ -148,6 +162,10 @@ const MainPage = () => {
     const seenArr = Array.from(seenRef.current);
 
     if (deliveredArr.length === 0 && seenArr.length === 0) return;
+
+    deliveredArr.forEach((id) => {
+      if (!seenRef.current.has(id)) unseenRef.current.add(id);
+    });
 
     const payload = { username, delivered: deliveredArr, seen: seenArr };
 
@@ -224,13 +242,6 @@ const MainPage = () => {
         setTimeout(() => {
           const deliveredIds = msg.delivered || [];
           const seenIds = msg.seen || [];
-
-          console.log(
-            "Status Update — Seen:",
-            seenIds,
-            "Delivered:",
-            deliveredIds
-          );
 
           setChatHistory((prevHistory) =>
             prevHistory.map((m) => {

@@ -18,10 +18,6 @@ const ContactsPage = ({
   const { messengerApi } = useApiClients();
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    console.log("contacts page: ", contactsList);
-  }, []);
-
   const existingContactsList = contactsList.filter(
     (c) => c.latestMessage && c.timestamp !== null
   );

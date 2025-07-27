@@ -27,7 +27,7 @@ const ChatPage = ({
   const isUserNearBottom = () => {
     const el = chatRef.current;
     if (!el) return false;
-    const threshold = 150; // px from bottom
+    const threshold = 250; // px from bottom
     return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
   };
 
