@@ -60,6 +60,46 @@
   color: #0056b3;
 }
 
+.showcase-secondary-project {
+  margin-top: 2rem;
+  text-align: center;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.secondary-description {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0.5rem 0 1rem;
+}
+
+.join-cta-button {
+  color: #007bff;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.join-cta-button:hover {
+  color: #0056b3;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .showcase-cta {
   margin-top: 1rem;
   font-size: 0.95rem;

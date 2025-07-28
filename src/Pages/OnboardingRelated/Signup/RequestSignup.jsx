@@ -23,6 +23,10 @@ const RequestSignup = () => {
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
+  const isStrongPassword = (password) => {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -38,9 +42,9 @@ const RequestSignup = () => {
       return showPopup("Passwords do not match.", "error");
     }
 
-    if (password.length < 6) {
+    if (!isStrongPassword(password)) {
       return showPopup(
-        "Password should be at least 6 characters long.",
+        "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.",
         "error"
       );
     }
@@ -92,6 +96,7 @@ const RequestSignup = () => {
           <LuMessagesSquare size={60} />
           <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
+          <h2>SIGNUP</h2>
         </div>
 
         <form onSubmit={handleSignup} className="req-signup-form">

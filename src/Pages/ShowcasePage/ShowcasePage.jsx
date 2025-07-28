@@ -64,8 +64,25 @@ const ShowcasePage = () => {
           <p>Start a conversation by selecting a contact on the left.</p>
         </div>
       </div>
+
+      <div className="showcase-secondary-project">
+        <h2>Explore More Projects</h2>
+        <p className="secondary-description">
+          Check out <strong>Wrap & Wow</strong> — a fun and personalized way to
+          send messages.
+        </p>
+        <a
+          href="https://wrap-and-wow.vercel.app/join"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="join-cta-button"
+          title="Join Wrap & Wow"
+        >
+          Visit Wrap & Wow
+        </a>
+      </div>
       <div className="showcase-footer">
-        © {new Date().getFullYear()} Wrap & Wow · All rights reserved.
+        © {new Date().getFullYear()} Messengers · All rights reserved.
       </div>
     </div>
   );

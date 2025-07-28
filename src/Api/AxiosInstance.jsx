@@ -38,6 +38,10 @@ export const createAxiosInstance = (baseURL) => {
         "/auth/refresh",
         "/auth/request-signup",
         "/auth/signup",
+        "/auth/request-forgot-password",
+        "/auth/validate-otp",
+        "/auth/forgot-password",
+        "/auth/forgotpass-resend-otp",
       ];
 
       if (!allowedUrls.some((url) => config.url.includes(url)) && !token) {

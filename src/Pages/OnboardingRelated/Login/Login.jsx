@@ -73,6 +73,7 @@ const Login = () => {
           <LuMessagesSquare size={60} cursor={"pointer"} />
           <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
+          <h2>LOGIN</h2>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">

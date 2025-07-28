@@ -21,7 +21,7 @@
 
 .req-signup-header h1 {
   font-size: 2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.2rem;
   color: #333;
 }
 
@@ -29,6 +29,12 @@
   margin-top: 0;
   font-size: 0.95rem;
   color: #555;
+}
+
+.req-signup-header h2 {
+  font-size: 1.8rem;
+  margin-top: 0.2rem;
+  color: #333;
 }
 
 .req-signup-form {

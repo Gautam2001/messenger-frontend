@@ -11,6 +11,8 @@ import Signup from "./Pages/OnboardingRelated/Signup/Signup";
 import MainPage from "./Pages/MainPage/MainPage";
 import ProtectedRoute from "./ProtectedRoutes/ProtectedRoute";
 import { WebSocketProvider } from "./Pages/GlobalFunctions/GlobalWebsocket/WebSocketContext";
+import ForgotPassword from "./Pages/OnboardingRelated/ForgotPassword/ForgotPassword";
+import ChangePassword from "./Pages/OnboardingRelated/ForgotPassword/ChangePassword";
 
 const isMaintenance = import.meta.env.VITE_MAINTENANCE_MODE === "true";
 
@@ -39,6 +41,8 @@ const App = () => {
           <Route path="/join" element={<Join />} />
           <Route path="/signup" element={<RequestSignup />} />
           <Route path="/signup-otp" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
 
           {/* Protected Route with WebSocket */}
           <Route element={<ProtectedRoute />}>

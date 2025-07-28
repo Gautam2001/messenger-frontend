@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Join.css";
 import { LuMessagesSquare } from "react-icons/lu";
 import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
@@ -11,6 +11,10 @@ const Join = () => {
   const { messengerApi } = useApiClients();
   const [username, setUsername] = useState("");
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    sessionStorage.clear();
+  }, []);
 
   const handleJoin = async (e) => {
     e.preventDefault();
@@ -50,6 +54,7 @@ const Join = () => {
           <LuMessagesSquare size={60} cursor={"pointer"} />
           <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
+          <h2>JOIN</h2>
         </div>
 
         <form onSubmit={handleJoin} className="join-form">

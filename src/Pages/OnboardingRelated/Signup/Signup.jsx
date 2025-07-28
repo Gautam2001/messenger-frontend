@@ -19,6 +19,13 @@ const Signup = () => {
     sessionStorage.clear();
   }, []);
 
+  useEffect(() => {
+    if (!username) {
+      showPopup("Invalid or expired OTP link", "error");
+      navigate("/signup");
+    }
+  }, [username, navigate, showPopup]);
+
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -111,6 +118,7 @@ const Signup = () => {
           <LuMessagesSquare size={60} />
           <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
+          <h2>SIGNUP OTP</h2>
         </div>
 
         <form onSubmit={handleSignup} className="signup-form">
