@@ -2,7 +2,7 @@
   display: flex;
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  /* overflow: hidden; */
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -20,7 +20,7 @@
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
 }
 
-.contact-list {
+.contacts-container {
   width: 30%;
   background-color: var(--panel-bg);
   border-right: 1px solid #e0e0e0;
@@ -69,4 +69,20 @@
 
 ::-webkit-scrollbar-track {
   background-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .sidebar {
+    width: 65px;
+  }
+
+  .contacts-container,
+  .chat-container {
+    width: 100vw;
+    height: 100vh;
+  }
 }

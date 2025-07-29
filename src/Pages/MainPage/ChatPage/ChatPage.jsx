@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./ChatPage.css";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
 import format from "date-fns/format";
 import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 import SendMessage from "../SendMessage/SendMessage";
+import { useApiClients } from "../../../Api/useApiClients";
+import { usePopup } from "../../GlobalFunctions/GlobalPopup/GlobalPopupContext";
 
 const ChatPage = ({
   selectedContact,
@@ -21,7 +24,15 @@ const ChatPage = ({
   const chatRef = useRef(null);
   const messageEndRef = useRef(null);
   const prevMessageCount = useRef(0);
+  const { messengerApi } = useApiClients();
+  const { showPopup } = usePopup();
   const [chatInitialized, setChatInitialized] = useState(false);
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    message: null,
+  }); // For edit and delete message
 
   // Determine if user is near bottom
   const isUserNearBottom = () => {
@@ -84,6 +95,42 @@ const ChatPage = ({
     return () => el.removeEventListener("scroll", handleScroll);
   }, [cursorId, fetchOldChats]);
 
+  //context Menu
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.visible) {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [contextMenu]);
+
+  const handleEdit = (message) => {
+    console.log("Edit message:", message);
+    // show edit input or open a modal
+  };
+
+  const handleDelete = async (message) => {
+    console.log("Delete message:", message);
+    try {
+      const res = await messengerApi.post("/messenger/message-delete", {
+        username,
+        messageId: message.messageId,
+      });
+      if (res.data.status === "0") {
+        showPopup(res.data.message || "Message deleted", "success");
+      } else {
+        showPopup(res.data.message || "Failed to delete message", "error");
+      }
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Network error while deleting message.";
+      showPopup(msg, "error");
+    }
+  };
+
+  // Formatting for diplaying msgs
   const formatDateHeader = (dateStr) => {
     const date = new Date(dateStr);
     if (isToday(date)) return "Today";
@@ -152,15 +199,39 @@ const ChatPage = ({
                     {formatDateHeader(sentAt)}
                   </div>
                 )}
-                <div className={`chat-message ${isMe ? "sent" : "received"}`}>
-                  <div className="chat-message-text">{msg.content}</div>
-                  <div
-                    className={`chat-message-time ${
-                      isMe ? "chat-message-status" : ""
-                    }`}
-                  >
-                    {formatTime(sentAt)} {isMe && getStatusIcon(msg.status)}
+                <div
+                  className={`chat-message ${isMe ? "sent" : "received"} ${
+                    msg.isDeleted ? "deleted" : ""
+                  }`}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isMe && !msg.isDeleted) {
+                      setContextMenu({
+                        visible: true,
+                        x: e.pageX,
+                        y: e.pageY,
+                        message: msg,
+                      });
+                    }
+                  }}
+                >
+                  <div className="chat-message-text">
+                    {msg.isDeleted ? (
+                      <i>This message has been deleted</i>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
+                  {!msg.isDeleted && (
+                    <div
+                      className={`chat-message-time ${
+                        isMe ? "chat-message-status" : ""
+                      }`}
+                    >
+                      {formatTime(sentAt)} {isMe && getStatusIcon(msg.status)}
+                    </div>
+                  )}
                 </div>
               </React.Fragment>
             );
@@ -168,6 +239,23 @@ const ChatPage = ({
         })()}
         <div ref={messageEndRef} />
       </div>
+
+      {contextMenu.visible && (
+        <>
+          <ul
+            className="chat-context-menu"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            onClick={() => setContextMenu({ ...contextMenu, visible: false })}
+          >
+            <li onClick={() => handleEdit(contextMenu.message)}>
+              <FiEdit size={10} /> Edit
+            </li>
+            <li onClick={() => handleDelete(contextMenu.message)}>
+              <FiTrash2 size={100} /> Delete
+            </li>
+          </ul>
+        </>
+      )}
 
       {/* Message Input */}
       <SendMessage contactUsername={selectedContact.contactUsername} />
