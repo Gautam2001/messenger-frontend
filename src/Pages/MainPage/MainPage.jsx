@@ -184,100 +184,6 @@ const MainPage = () => {
     );
   };
 
-  // Websocket
-  // useEffect(() => {
-  //   const listener = (msg) => {
-  //     const participants = [msg.sender, msg.receiver];
-  //     const isChatMatch =
-  //       selectedContact &&
-  //       participants.includes(selectedContact.contactUsername) &&
-  //       participants.includes(username);
-
-  //     const isIncoming = msg.receiver === username;
-  //     const isCurrentChatOpen = selectedContact?.contactUsername === msg.sender;
-
-  //     // Handle new message update first
-  //     if (!msg.delivered && !msg.seen) {
-  //       if (isIncoming) {
-  //         if (isCurrentChatOpen) {
-  //           deliveredRef.current.add(msg.messageId);
-  //           seenRef.current.add(msg.messageId);
-  //         } else {
-  //           deliveredRef.current.add(msg.messageId);
-  //         }
-  //         debounceSend();
-  //       }
-
-  //       if (isChatMatch) {
-  //         setChatHistory((prev) => {
-  //           if (prev.some((m) => m.messageId === msg.messageId)) return prev;
-  //           return [...prev, msg];
-  //         });
-  //       }
-
-  //       setContactsList((prevList) =>
-  //         prevList.map((contact) => {
-  //           const otherUser =
-  //             msg.sender === username ? msg.receiver : msg.sender;
-  //           const isMatch = contact.contactUsername === otherUser;
-  //           if (!isMatch) return contact;
-
-  //           const isIncoming = msg.receiver === username;
-  //           const isCurrentChatOpen =
-  //             selectedContact?.contactUsername === contact.contactUsername;
-
-  //           return {
-  //             ...contact,
-  //             latestMessage: msg.content,
-  //             latestMessageSender: msg.sender,
-  //             latestMessageId: msg.messageId,
-  //             status: msg.status,
-  //             timestamp: msg.sentAt,
-  //             unread:
-  //               isIncoming && !isCurrentChatOpen
-  //                 ? (contact.unread || 0) + 1
-  //                 : contact.unread,
-  //           };
-  //         })
-  //       );
-  //     }
-
-  //     // status update to next event loop tick
-  //     if (msg.delivered || msg.seen) {
-  //       setTimeout(() => {
-  //         const deliveredIds = msg.delivered || [];
-  //         const seenIds = msg.seen || [];
-
-  //         setChatHistory((prevHistory) =>
-  //           prevHistory.map((m) => {
-  //             if (seenIds.includes(m.messageId))
-  //               return { ...m, status: "SEEN" };
-  //             if (deliveredIds.includes(m.messageId) && m.status !== "SEEN")
-  //               return { ...m, status: "DELIVERED" };
-  //             return m;
-  //           })
-  //         );
-
-  //         setContactsList((prev) =>
-  //           prev.map((contact) => {
-  //             const id = contact.latestMessageId;
-  //             if (seenIds.includes(id)) return { ...contact, status: "SEEN" };
-  //             if (deliveredIds.includes(id) && contact.status !== "SEEN")
-  //               return { ...contact, status: "DELIVERED" };
-  //             return contact;
-  //           })
-  //         );
-  //       }, 50);
-  //     }
-  //   };
-
-  //   const unsubscribe = addMessageListener(listener);
-  //   return () => {
-  //     unsubscribe();
-  //     clearTimeout(debounceTimerRef.current);
-  //   };
-  // }, [selectedContact, username]);
-
   const handleNewMessage = (msg) => {
     const participants = [msg.sender, msg.receiver];
     const isChatMatch =
@@ -375,10 +281,38 @@ const MainPage = () => {
     );
   };
 
+  const handleEditedMessage = (msg) => {
+    setChatHistory((prev) =>
+      prev.map((m) =>
+        m.messageId === msg.messageId
+          ? {
+              ...m,
+              content: msg.content,
+              isEdited: true,
+            }
+          : m
+      )
+    );
+
+    setContactsList((prevList) =>
+      prevList.map((contact) => {
+        if (contact.latestMessageId === msg.messageId) {
+          return {
+            ...contact,
+            latestMessage: msg.content,
+          };
+        }
+        return contact;
+      })
+    );
+  };
+
   useEffect(() => {
     const listener = (msg) => {
       if (msg?.type === "DELETED") {
         handleDeletedMessage(msg);
+      } else if (msg?.type === "EDITED") {
+        handleEditedMessage(msg);
       } else {
         if (!msg.delivered && !msg.seen) {
           handleNewMessage(msg);

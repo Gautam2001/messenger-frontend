@@ -82,6 +82,34 @@
   font-style: italic;
 }
 
+.edit-message-box {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.edit-message-input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.edit-action-button {
+  padding: 2px 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+}
+
+.edit-action-button.cancel {
+  background-color: #6c757d;
+}
+
 .chat-message-time {
   font-size: 0.75rem;
   color: #666;
@@ -90,6 +118,11 @@
   justify-content: flex-end;
   align-items: center;
   gap: 4px;
+}
+
+.edited-label {
+  font-style: italic;
+  opacity: 0.7;
 }
 
 .chat-message-status {

@@ -27,6 +27,9 @@ const ChatPage = ({
   const { messengerApi } = useApiClients();
   const { showPopup } = usePopup();
   const [chatInitialized, setChatInitialized] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editedContent, setEditedContent] = useState("");
+
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -107,8 +110,37 @@ const ChatPage = ({
   }, [contextMenu]);
 
   const handleEdit = (message) => {
-    console.log("Edit message:", message);
-    // show edit input or open a modal
+    setEditingMessageId(message.messageId);
+    setEditedContent(message.content);
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditedContent("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editedContent.trim()) return;
+    try {
+      const res = await messengerApi.post("/messenger/message-edit", {
+        username,
+        messageId: editingMessageId,
+        content: editedContent.trim(),
+      });
+
+      if (res.data.status === "0") {
+        showPopup(res.data.message || "Message edited successfully", "success");
+        setEditingMessageId(null);
+        setEditedContent("");
+      } else {
+        showPopup(res.data.message || "Failed to edit message", "error");
+      }
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Network error while editing message.";
+      showPopup(msg, "error");
+    }
   };
 
   const handleDelete = async (message) => {
@@ -219,16 +251,42 @@ const ChatPage = ({
                   <div className="chat-message-text">
                     {msg.isDeleted ? (
                       <i>This message has been deleted</i>
+                    ) : editingMessageId === msg.messageId ? (
+                      <div className="edit-message-box">
+                        <input
+                          type="text"
+                          value={editedContent}
+                          onChange={(e) => setEditedContent(e.target.value)}
+                          className="edit-message-input"
+                          autoFocus
+                        />
+                        <button
+                          onClick={handleSaveEdit}
+                          className="edit-action-button"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="edit-action-button cancel"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     ) : (
-                      msg.content
+                      <>{msg.content}</>
                     )}
                   </div>
+
                   {!msg.isDeleted && (
                     <div
                       className={`chat-message-time ${
                         isMe ? "chat-message-status" : ""
                       }`}
                     >
+                      {msg.isEdited && (
+                        <span className="edited-label">(edited)</span>
+                      )}
                       {formatTime(sentAt)} {isMe && getStatusIcon(msg.status)}
                     </div>
                   )}
