@@ -81,7 +81,7 @@ const ChatPage = ({
     if (isNewMessage && (isUserNearBottom() || isFromMe)) {
       scrollToBottom();
     }
-  }, [chatHistory]);
+  }, [chatHistory, chatInitialized, username]);
 
   // Infinite scroll for loading old messages
   useEffect(() => {
@@ -198,7 +198,7 @@ const ChatPage = ({
               {selectedContact.contactUsername === username
                 ? `${selectedContact.contactName} (You)`
                 : selectedContact.contactName}
-              <span className="chat-user-status"> Online</span>
+              {/* <span className="chat-user-status"> Online</span> */}
             </span>
             <span className="chat-username">
               {selectedContact.contactUsername}

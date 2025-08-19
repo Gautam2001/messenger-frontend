@@ -7,8 +7,11 @@ import ContactsPage from "./ContactsPage/ContactsPage";
 import ChatPage from "./ChatPage/ChatPage";
 import SidebarPage from "./SidebarPage/SidebarPage";
 import ShowcasePage from "../ShowcasePage/ShowcasePage";
+import ProfilePage from "../ProfileRelated/ProfilePage";
 
 const MainPage = () => {
+  const [activeSection, setActiveSection] = useState("chats"); //sidebar
+
   const DEBOUNCE_INTERVAL = 10000;
   const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
   const username = loginData?.username;
@@ -27,6 +30,13 @@ const MainPage = () => {
   const seenRef = useRef(new Set());
   const unseenRef = useRef(new Set());
   const debounceTimerRef = useRef(null);
+
+  //for sidebar to unselect a contact in contacts page
+  useEffect(() => {
+    if (activeSection !== "contacts") {
+      setSelectedContact(null);
+    }
+  }, [activeSection, setSelectedContact]);
 
   const fetchContacts = async () => {
     try {
@@ -138,7 +148,7 @@ const MainPage = () => {
         unseenRef.current.clear();
       }
     }, 100);
-  }, [selectedContact]);
+  }, [selectedContact, sendMessage, username]);
 
   useEffect(() => {
     if (selectedContact && selectedContact.contactUsername && cursorId === 0) {
@@ -340,7 +350,10 @@ const MainPage = () => {
   return (
     <div className="main-layout">
       <div className={`sidebar ${selectedContact ? "hide-on-mobile" : ""}`}>
-        <SidebarPage />
+        <SidebarPage
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
       </div>
       <div
         className={`contacts-container ${
@@ -353,23 +366,27 @@ const MainPage = () => {
           selectedContact={selectedContact}
           onSelectContact={setSelectedContact}
           loadingContacts={loading}
+          setActiveSection={setActiveSection}
         />
       </div>
       <div
         className={`chat-container ${!selectedContact ? "hide-on-mobile" : ""}`}
       >
-        {selectedContact ? (
-          <ChatPage
-            selectedContact={selectedContact}
-            setSelectedContact={setSelectedContact}
-            chatHistory={chatHistory}
-            loadingChat={loading}
-            cursorId={cursorId}
-            fetchOldChats={fetchChatHistory}
-          />
-        ) : (
-          <ShowcasePage />
-        )}
+        {activeSection === "chats" &&
+          (selectedContact ? (
+            <ChatPage
+              selectedContact={selectedContact}
+              setSelectedContact={setSelectedContact}
+              chatHistory={chatHistory}
+              loadingChat={loading}
+              cursorId={cursorId}
+              fetchOldChats={fetchChatHistory}
+            />
+          ) : (
+            <ShowcasePage />
+          ))}
+        {activeSection === "showcase" && <ShowcasePage />}
+        {activeSection === "profile" && <ProfilePage />}
       </div>
     </div>
   );

@@ -1,0 +1,73 @@
+/* Container centers the profile card */
+.pp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+  background: var(--background-color, #f9fafb);
+}
+
+/* Card styling */
+.pp-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  transition: transform 0.2s ease-in-out;
+}
+
+.pp-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Avatar */
+.pp-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 25px auto;
+  border: 3px solid #007bff;
+  object-fit: cover;
+}
+
+/* Name */
+.pp-name {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 8px 0;
+  color: #1f2937;
+}
+
+/* Email */
+.pp-username {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+/* Joined At */
+.pp-joined {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 24px;
+}
+
+/* Reset Password Button */
+.pp-reset-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.pp-reset-btn:hover {
+  background: #0056b3;
+}

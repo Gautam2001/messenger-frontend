@@ -10,6 +10,7 @@ const ContactsPage = ({
   selectedContact,
   onSelectContact,
   loadingContacts,
+  setActiveSection,
 }) => {
   const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
   const username = loginData?.username;
@@ -146,6 +147,7 @@ const ContactsPage = ({
             : ""
         }`}
         onClick={() => {
+          setActiveSection("chats");
           onSelectContact(displayContact);
           setSearch("");
         }}
