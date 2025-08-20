@@ -8,6 +8,10 @@ import ChatPage from "./ChatPage/ChatPage";
 import SidebarPage from "./SidebarPage/SidebarPage";
 import ShowcasePage from "../ShowcasePage/ShowcasePage";
 import ProfilePage from "../ProfileRelated/ProfilePage";
+import {
+  ensureNotificationPermission,
+  showMessageNotification,
+} from "../GlobalFunctions/Notification";
 
 const MainPage = () => {
   const [activeSection, setActiveSection] = useState("chats"); //sidebar
@@ -127,6 +131,7 @@ const MainPage = () => {
 
   useEffect(() => {
     fetchContacts();
+    ensureNotificationPermission(); //Notification Related
   }, []);
 
   useEffect(() => {
@@ -168,6 +173,7 @@ const MainPage = () => {
     }
   }, [selectedContact, cursorId]);
 
+  //Websocket Related
   const triggerStatusUpdate = () => {
     const deliveredArr = Array.from(deliveredRef.current);
     const seenArr = Array.from(seenRef.current);
@@ -194,12 +200,13 @@ const MainPage = () => {
     );
   };
 
-  const handleNewMessage = (msg) => {
-    const participants = [msg.sender, msg.receiver];
+  const handleNewMessage = async (msg) => {
     const isChatMatch =
       selectedContact &&
-      participants.includes(selectedContact.contactUsername) &&
-      participants.includes(username);
+      ((msg.sender === selectedContact.contactUsername &&
+        msg.receiver === username) ||
+        (msg.receiver === selectedContact.contactUsername &&
+          msg.sender === username));
 
     const isIncoming = msg.receiver === username;
     const isCurrentChatOpen = selectedContact?.contactUsername === msg.sender;
@@ -245,6 +252,38 @@ const MainPage = () => {
         };
       })
     );
+
+    //Notification Related
+    if (isIncoming && !isCurrentChatOpen && (document.hidden || true)) {
+      const perm = await ensureNotificationPermission();
+      if (perm === "granted") {
+        const senderName = msg.senderDisplayName || msg.sender;
+        const iconUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          senderName
+        )}&background=007bff&color=fff&rounded=true&size=96`;
+
+        showMessageNotification({
+          title: senderName,
+          body: msg.content || "New message",
+          icon: iconUrl,
+          tag: `chat-${msg.messageId}`,
+          data: { from: msg.sender },
+          onClick: () => {
+            setSelectedContact(() => {
+              const existing = contactsList.find(
+                (c) => c.contactUsername === msg.sender
+              );
+              return (
+                existing || {
+                  contactUsername: msg.sender,
+                  contactName: senderName,
+                }
+              );
+            });
+          },
+        });
+      }
+    }
   };
 
   const handleStatusUpdate = (msg) => {

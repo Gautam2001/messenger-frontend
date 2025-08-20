@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import "./ProfilePage.css";
+import ResetPassword from "./resetPassword";
 
 const ProfilePage = () => {
+  const [showReset, setShowReset] = useState(false);
+
   const loginData = JSON.parse(sessionStorage.getItem("LoginData"));
   const name = loginData?.name || "User";
-  const username = loginData?.username || "User";
+  const username = loginData?.username || "user@gmail.com";
   const joinedAtRaw = loginData?.joinedAt || "N/A";
 
   const joinedAt = joinedAtRaw
     ? new Date(joinedAtRaw).toLocaleString("en-US", {
         year: "numeric",
-        month: "short", // change to "long" for full month name
+        month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
@@ -19,7 +22,6 @@ const ProfilePage = () => {
 
   return (
     <div className="pp-container">
-      {/* Profile Card */}
       <div className="pp-card">
         {/* Avatar */}
         <img
@@ -36,7 +38,13 @@ const ProfilePage = () => {
         <p className="pp-joined">Joined On: {joinedAt}</p>
 
         {/* Reset Password */}
-        <button className="pp-reset-btn">Reset Password</button>
+        {!showReset ? (
+          <button className="primary-button" onClick={() => setShowReset(true)}>
+            Reset Password
+          </button>
+        ) : (
+          <ResetPassword onClose={() => setShowReset(false)} />
+        )}
       </div>
     </div>
   );

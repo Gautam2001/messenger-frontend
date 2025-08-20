@@ -72,3 +72,27 @@ html {
 .primary-button:hover:not(:disabled) {
   background-color: #357abf;
 }
+
+.secondary-button {
+  padding: 10px;
+  font-size: 1rem;
+  background-color: transparent;
+  color: #4a90e2;
+  border: 2px solid #4a90e2;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.secondary-button:disabled {
+  color: #a6c8f0;
+  border-color: #a6c8f0;
+  cursor: not-allowed;
+  background-color: transparent;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background-color: #e6f0fa;
+  color: #357abf;
+  border-color: #357abf;
+}
