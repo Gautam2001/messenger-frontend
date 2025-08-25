@@ -46,9 +46,9 @@ const SendMessage = ({ contactUsername }) => {
 
   return (
     <div className="send-message-container">
-      <button className="icon-button">
+      {/* <button className="icon-button">
         <FaSmile />
-      </button>
+      </button> */}
       <textarea
         ref={textareaRef}
         className="chat-textarea"
@@ -67,9 +67,9 @@ const SendMessage = ({ contactUsername }) => {
         rows={1}
         maxLength={1000}
       />
-      <button className="icon-button">
+      {/* <button className="icon-button">
         <FaPaperclip />
-      </button>
+      </button> */}
       <button className="send-button" onClick={handleSend}>
         <FaPaperPlane />
       </button>
