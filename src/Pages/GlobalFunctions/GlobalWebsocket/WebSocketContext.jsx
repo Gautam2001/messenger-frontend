@@ -18,12 +18,16 @@ export const WebSocketProvider = ({ children, token, userId }) => {
   useEffect(() => {
     if (!token || !userId) return;
 
-    const baseUrl = import.meta.env.VITE_MESSENGER_URL.replace(/^http/, "ws");
+    const baseUrl = import.meta.env.VITE_MESSENGER_URL;
+
+    const wsBaseUrl = baseUrl.startsWith("https")
+      ? baseUrl.replace("https", "wss")
+      : baseUrl.replace("http", "ws");
 
     let currentToken = token;
 
     const createClient = (tokenToUse) => {
-      const wsUrl = `${baseUrl}ws?token=${encodeURIComponent(tokenToUse)}`;
+      const wsUrl = `${wsBaseUrl}ws?token=${encodeURIComponent(tokenToUse)}`;
 
       const client = new Client({
         webSocketFactory: () => new WebSocket(wsUrl),
