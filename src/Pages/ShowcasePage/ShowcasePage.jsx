@@ -72,7 +72,7 @@ const ShowcasePage = () => {
           send messages.
         </p>
         <a
-          href="https://wrap-and-wow.vercel.app/join"
+          href="https://wrap-and-wow.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
           className="join-cta-button"
