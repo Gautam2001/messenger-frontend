@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./ProfilePage.css";
-import ResetPassword from "./resetPassword";
+import ResetPassword from "./ResetPassword";
 
 const ProfilePage = () => {
   const [showReset, setShowReset] = useState(false);
