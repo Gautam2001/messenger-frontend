@@ -27,7 +27,7 @@ export const WebSocketProvider = ({ children, token, userId }) => {
     let currentToken = token;
 
     const createClient = (tokenToUse) => {
-      const wsUrl = `${wsBaseUrl}ws?token=${encodeURIComponent(tokenToUse)}`;
+      const wsUrl = `${wsBaseUrl}/ws?token=${encodeURIComponent(tokenToUse)}`;
 
       const client = new Client({
         webSocketFactory: () => new WebSocket(wsUrl),
