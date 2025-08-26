@@ -19,16 +19,33 @@ const ContactsPage = ({
   const { messengerApi } = useApiClients();
   const [search, setSearch] = useState("");
 
+  const specialContact = {
+    contactName: "Gautam Singhal",
+    contactUsername: "singhal.gautam.gs@gmail.com",
+    userId: "2",
+    latestMessage: "",
+    timestamp: null,
+    status: "",
+  };
+
   const existingContactsList = contactsList.filter(
     (c) => c.latestMessage && c.timestamp !== null
   );
-  const newContactsList = contactsList.filter(
+  let newContactsList = contactsList.filter(
     (c) =>
       (!c.latestMessage ||
         c.latestMessage === "" ||
         c.latestMessage === "No conversations yet.") &&
       c.timestamp === null
   );
+
+  if (
+    !contactsList.some(
+      (c) => c.contactUsername === specialContact.contactUsername
+    )
+  ) {
+    newContactsList = [...newContactsList, specialContact];
+  }
 
   const matchesSearch = (searchContact) => {
     const lower = search.toLowerCase();

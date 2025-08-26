@@ -396,7 +396,7 @@ const MainPage = () => {
       </div>
       <div
         className={`contacts-container ${
-          selectedContact ? "hide-on-mobile" : ""
+          selectedContact || activeSection === "profile" ? "hide-on-mobile" : ""
         }`}
       >
         <ContactsPage
@@ -409,7 +409,11 @@ const MainPage = () => {
         />
       </div>
       <div
-        className={`chat-container ${!selectedContact ? "hide-on-mobile" : ""}`}
+        className={`chat-container ${
+          !selectedContact && activeSection !== "profile"
+            ? "hide-on-mobile"
+            : ""
+        }`}
       >
         {activeSection === "chats" &&
           (selectedContact ? (
@@ -424,7 +428,9 @@ const MainPage = () => {
           ) : (
             <ShowcasePage />
           ))}
+
         {activeSection === "showcase" && <ShowcasePage />}
+
         {activeSection === "profile" && <ProfilePage />}
       </div>
     </div>

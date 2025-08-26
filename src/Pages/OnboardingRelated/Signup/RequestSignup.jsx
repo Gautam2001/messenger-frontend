@@ -163,6 +163,9 @@ const RequestSignup = () => {
           <p>
             Already a member? <a href="/login">Log in here</a>
           </p>
+          <p>
+            Already have an account? <a href="/join">Join here</a>
+          </p>
         </div>
       </div>
     </div>
