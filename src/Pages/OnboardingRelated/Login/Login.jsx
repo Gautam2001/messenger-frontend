@@ -15,6 +15,21 @@ const Login = () => {
 
   useEffect(() => {
     sessionStorage.clear();
+    const pingServers = async () => {
+      try {
+        const [authRes, messengerRes] = await Promise.all([
+          loginApi.get("/auth/ping"),
+          messengerApi.get("/messenger/ping"),
+        ]);
+
+        console.log("Auth Ping Response:", authRes.data);
+        console.log("Messenger Ping Response:", messengerRes.data);
+      } catch (err) {
+        console.error("Ping failed:", err);
+      }
+    };
+
+    pingServers();
   }, []);
 
   const handleLogin = async (e) => {

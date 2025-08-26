@@ -32,8 +32,10 @@ export const createAxiosInstance = (baseURL) => {
       const token = loginData?.accessToken;
 
       const allowedUrls = [
+        "/messenger/ping",
         "/messenger/join",
         "/messenger/exists",
+        "/auth/ping",
         "/auth/login",
         "/auth/refresh",
         "/auth/request-signup",
