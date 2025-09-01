@@ -220,7 +220,7 @@ const ContactsPage = ({
       <input
         type="text"
         className="contact-search"
-        placeholder="Search by name or email..."
+        placeholder="Type email to start new chat..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
