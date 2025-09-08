@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./ChatPage.css";
+import ReactMarkdown from "react-markdown";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { BsCheck, BsCheckAll } from "react-icons/bs";
@@ -274,7 +275,7 @@ const ChatPage = ({
                         </button>
                       </div>
                     ) : (
-                      <>{msg.content}</>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
                     )}
                   </div>
 

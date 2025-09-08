@@ -20,9 +20,11 @@ export const WebSocketProvider = ({ children, token, userId }) => {
 
     const baseUrl = import.meta.env.VITE_MESSENGER_URL;
 
-    const wsBaseUrl = baseUrl.startsWith("https")
-      ? baseUrl.replace("https", "wss")
-      : baseUrl.replace("http", "ws");
+    const wsBaseUrl = (
+      baseUrl.startsWith("https")
+        ? baseUrl.replace("https", "wss")
+        : baseUrl.replace("http", "ws")
+    ).replace(/\/$/, "");
 
     let currentToken = token;
 

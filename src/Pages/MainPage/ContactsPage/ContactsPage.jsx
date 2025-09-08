@@ -19,18 +19,29 @@ const ContactsPage = ({
   const { messengerApi } = useApiClients();
   const [search, setSearch] = useState("");
 
-  const specialContact = {
-    contactName: "Gautam Singhal",
-    contactUsername: "singhal.gautam.gs@gmail.com",
-    userId: "2",
-    latestMessage: "",
-    timestamp: null,
-    status: "",
-  };
+  const specialContacts = [
+    {
+      contactName: "Gautam Singhal",
+      contactUsername: "singhal.gautam.gs@gmail.com",
+      userId: "2",
+      latestMessage: "",
+      timestamp: null,
+      status: "",
+    },
+    {
+      contactName: "AI Bot",
+      contactUsername: "aibot@messenger-chats.com",
+      userId: "3",
+      latestMessage: "",
+      timestamp: null,
+      status: "",
+    },
+  ];
 
   const existingContactsList = contactsList.filter(
     (c) => c.latestMessage && c.timestamp !== null
   );
+
   let newContactsList = contactsList.filter(
     (c) =>
       (!c.latestMessage ||
@@ -39,13 +50,15 @@ const ContactsPage = ({
       c.timestamp === null
   );
 
-  if (
-    !contactsList.some(
-      (c) => c.contactUsername === specialContact.contactUsername
-    )
-  ) {
-    newContactsList = [...newContactsList, specialContact];
-  }
+  specialContacts.forEach((specialContact) => {
+    if (
+      !contactsList.some(
+        (c) => c.contactUsername === specialContact.contactUsername
+      )
+    ) {
+      newContactsList = [...newContactsList, specialContact];
+    }
+  });
 
   const matchesSearch = (searchContact) => {
     const lower = search.toLowerCase();
