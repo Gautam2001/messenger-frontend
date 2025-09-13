@@ -9,7 +9,7 @@ import Login from "./Pages/OnboardingRelated/Login/Login";
 import RequestSignup from "./Pages/OnboardingRelated/Signup/RequestSignup";
 import Signup from "./Pages/OnboardingRelated/Signup/Signup";
 import MainPage from "./Pages/MainPage/MainPage";
-import ProtectedRoute from "./ProtectedRoutes/ProtectedRoute";
+import ProtectedRoute from "./Api/ProtectedRoute";
 import { WebSocketProvider } from "./Pages/GlobalFunctions/GlobalWebsocket/WebSocketContext";
 import ForgotPassword from "./Pages/OnboardingRelated/ForgotPassword/ForgotPassword";
 import ChangePassword from "./Pages/OnboardingRelated/ForgotPassword/ChangePassword";

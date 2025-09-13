@@ -65,12 +65,10 @@ const Login = () => {
           navigate("/chats");
         } else {
           showPopup(loginData.message || "Something went wrong.", "error"); //proceed  for signup
-          // navigate("/signup");
         }
       } else {
         //user does not exists in messenger table
         showPopup(data.message || "Something went wrong.", "error"); //proceed for join
-        // navigate("/signup");
       }
     } catch (err) {
       const message =
