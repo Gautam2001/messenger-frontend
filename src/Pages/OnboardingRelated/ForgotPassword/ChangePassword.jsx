@@ -85,7 +85,7 @@ const ChangePassword = () => {
           <LuMessagesSquare size={60} />
           <h1>Messengers</h1>
           <p>Connect. Chat. Share moments instantly.</p>
-          <h2>FORGOT PASSWORD OTP</h2>
+          <h2>FORGOT PASSWORD</h2>
         </div>
 
         <form className="cp-form" onSubmit={handleChangePassword}>

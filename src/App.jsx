@@ -3,16 +3,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GlobalPopupProvider } from "./Pages/GlobalFunctions/GlobalPopup/GlobalPopupContext";
 import "./Pages/GlobalFunctions/GlobalPopup/GlobalPopup.css";
 
+import ProtectedRoute from "./Api/ProtectedRoute";
+import { WebSocketProvider } from "./Pages/GlobalFunctions/GlobalWebsocket/WebSocketContext";
+
 import Maintenance from "./Pages/GlobalFunctions/Maintenance";
+
 import Join from "./Pages/OnboardingRelated/Join/Join";
 import Login from "./Pages/OnboardingRelated/Login/Login";
 import RequestSignup from "./Pages/OnboardingRelated/Signup/RequestSignup";
 import Signup from "./Pages/OnboardingRelated/Signup/Signup";
-import MainPage from "./Pages/MainPage/MainPage";
-import ProtectedRoute from "./Api/ProtectedRoute";
-import { WebSocketProvider } from "./Pages/GlobalFunctions/GlobalWebsocket/WebSocketContext";
 import ForgotPassword from "./Pages/OnboardingRelated/ForgotPassword/ForgotPassword";
 import ChangePassword from "./Pages/OnboardingRelated/ForgotPassword/ChangePassword";
+import MainPage from "./Pages/MainPage/MainPage";
 
 const isMaintenance = import.meta.env.VITE_MAINTENANCE_MODE === "true";
 
